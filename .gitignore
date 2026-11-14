@@ -1,0 +1,32 @@
+# Obsidian workspace state
+.obsidian/workspace
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+
+# Sensitive files
+.env
+.env.*
+!.env.example
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Datasets, training output and model weights (too large for GitHub)
+ai-model/datasets/
+ai-model/runs/
+*.pt
+
+# Node / Expo
+node_modules/
+.expo/
