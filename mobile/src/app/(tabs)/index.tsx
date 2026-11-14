@@ -8,6 +8,7 @@ import { ScanRow } from '@/components/scan-row';
 import { checkServer, type ServerStatus } from '@/lib/api';
 import { CATEGORY_INFO } from '@/lib/categories';
 import { summarize } from '@/lib/history';
+import { pickPhoto } from '@/lib/pick-photo';
 import { useStore } from '@/lib/store';
 import { radius, shadow, theme } from '@/lib/theme';
 
@@ -21,12 +22,13 @@ const STATUS_TEXT: Record<ServerStatus | 'checking', { label: string; color: str
 
 const STEPS = [
   { icon: 'camera-outline', title: 'Take a photo', body: 'Spread the items out and use good light.' },
-  { icon: 'cube-scan', title: 'EcoSort finds each item', body: 'Every item gets a box and a material.' },
-  { icon: 'recycle', title: 'Sort it right', body: 'See which bin each material goes in.' },
+  { icon: 'cube-scan', title: 'EcoSort finds each item', body: 'Each item it recognises gets a box and a likely material.' },
+  { icon: 'recycle', title: 'Sort it right', body: 'See general sorting guidance for each material.' },
 ] as const;
 
 export default function HomeScreen() {
-  const { history } = useStore();
+  const { history, setPendingPhoto } = useStore();
+  const [pickError, setPickError] = useState<string | null>(null);
   const [status, setStatus] = useState<ServerStatus | 'checking'>('checking');
   const summary = summarize(history);
   const recent = history.slice(0, 3);
@@ -47,16 +49,43 @@ export default function HomeScreen() {
 
   const statusInfo = STATUS_TEXT[status];
 
+  // Pick straight from the gallery, then show the photo on the Scan screen.
+  async function chooseFromGallery() {
+    setPickError(null);
+    const result = await pickPhoto('gallery');
+    if (result.kind === 'picked') {
+      setPendingPhoto(result.photo);
+      router.push('/scan');
+    } else if (result.kind === 'error') {
+      setPickError(result.message);
+    }
+  }
+
   return (
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.hero}>
         <Text style={styles.eyebrow}>AI waste sorting</Text>
         <Text style={styles.title}>Sort your waste with one photo</Text>
         <Text style={styles.subtitle}>
-          EcoSort finds every item in the picture, names its material and tells you which bin it goes in.
+          Scan a photo to identify visible waste materials. EcoSort marks each item it finds and suggests how
+          to sort it.
         </Text>
         <Button label="Scan waste" icon="line-scan" variant="onDark" onPress={() => router.push('/scan')} />
+        <Button
+          label="Choose a photo"
+          icon="image-multiple-outline"
+          variant="onDarkOutline"
+          onPress={chooseFromGallery}
+        />
+        <Text style={styles.caveat}>Results are AI estimates. Local sorting rules vary.</Text>
       </View>
+
+      {pickError ? (
+        <View style={styles.error} accessibilityRole="alert">
+          <MaterialCommunityIcons name="alert-circle-outline" size={20} color={theme.danger} />
+          <Text style={styles.errorText}>{pickError}</Text>
+        </View>
+      ) : null}
 
       <Pressable
         onPress={refreshStatus}
@@ -74,7 +103,7 @@ export default function HomeScreen() {
         </View>
         <View style={[styles.stat, shadow]}>
           <Text style={styles.statNumber}>{summary.items}</Text>
-          <Text style={styles.statLabel}>Items sorted</Text>
+          <Text style={styles.statLabel}>Objects detected</Text>
         </View>
         <View style={[styles.stat, shadow]}>
           <Text
@@ -129,6 +158,9 @@ const styles = StyleSheet.create({
   eyebrow: { color: theme.accent, fontSize: 13, fontWeight: '700', letterSpacing: 0.6, textTransform: 'uppercase' },
   title: { fontSize: 28, lineHeight: 34, fontWeight: '800', color: '#FFFFFF' },
   subtitle: { fontSize: 15, lineHeight: 22, color: '#C9DCD3', marginBottom: 4 },
+  caveat: { fontSize: 13, lineHeight: 18, color: '#A9C4B8', textAlign: 'center' },
+  error: { flexDirection: 'row', gap: 10, backgroundColor: theme.dangerSoft, borderRadius: radius.md, padding: 14 },
+  errorText: { flex: 1, color: theme.danger, fontSize: 15, lineHeight: 21 },
   status: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
   statusText: { fontSize: 13, fontWeight: '600', flex: 1 },
   stats: { flexDirection: 'row', gap: 10 },

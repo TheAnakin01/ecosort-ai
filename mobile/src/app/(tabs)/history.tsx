@@ -25,7 +25,9 @@ export default function HistoryScreen() {
           <MaterialCommunityIcons name="history" size={36} color={theme.brand} />
         </View>
         <Text style={styles.emptyTitle}>No scans yet</Text>
-        <Text style={styles.emptyBody}>Your scans are saved on this device and listed here.</Text>
+        <Text style={styles.emptyBody}>
+          Your scans and their photos are saved on this device only. Nothing is stored on a server.
+        </Text>
         <Button label="Scan waste" icon="line-scan" onPress={() => router.push('/scan')} />
       </View>
     );
@@ -35,7 +37,7 @@ export default function HistoryScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.header}>
         <Text style={styles.count}>
-          {history.length} {history.length === 1 ? 'scan' : 'scans'} saved on this device
+          {history.length} {history.length === 1 ? 'scan' : 'scans'} saved on this device only
         </Text>
         {clearArmed ? (
           <View style={styles.confirm}>

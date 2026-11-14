@@ -1,54 +1,42 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import * as ImagePicker from 'expo-image-picker';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
 import { ScanLine } from '@/components/scan-line';
 import { ApiError, scanPhoto } from '@/lib/api';
 import { keepPhoto } from '@/lib/photo-store';
+import { pickPhoto } from '@/lib/pick-photo';
 import { useStore } from '@/lib/store';
 import { radius, theme } from '@/lib/theme';
 import type { Photo } from '@/lib/types';
 
-// Lower quality keeps uploads small and fast; the detector resizes to 640px anyway.
-const PICKER_OPTIONS: ImagePicker.ImagePickerOptions = { mediaTypes: 'images', quality: 0.7 };
-
 const TIPS = ['Spread the items out', 'Use good light', 'Keep everything in the frame'];
 
 export default function ScanScreen() {
-  const { addScan } = useStore();
-  const [photo, setPhoto] = useState<Photo | null>(null);
+  const { addScan, pendingPhoto, setPendingPhoto } = useStore();
+  // Start with the photo chosen on the Home screen, if there is one.
+  const [photo, setPhoto] = useState<Photo | null>(pendingPhoto);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewHeight, setPreviewHeight] = useState(0);
 
+  // The Home screen's photo has been taken over; do not show it again next time.
+  useEffect(() => {
+    if (pendingPhoto) {
+      setPendingPhoto(null);
+    }
+  }, [pendingPhoto, setPendingPhoto]);
+
   async function pick(source: 'camera' | 'gallery') {
     setError(null);
-    try {
-      if (source === 'camera') {
-        const permission = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permission.granted) {
-          setError('Camera access is off. Allow it in your phone settings, or choose a photo from the gallery.');
-          return;
-        }
-      }
-      const picked =
-        source === 'camera'
-          ? await ImagePicker.launchCameraAsync(PICKER_OPTIONS)
-          : await ImagePicker.launchImageLibraryAsync(PICKER_OPTIONS);
-      if (!picked.canceled) {
-        const asset = picked.assets[0];
-        setPhoto({ uri: asset.uri, mimeType: asset.mimeType, fileName: asset.fileName, file: asset.file });
-      }
-    } catch {
-      setError(
-        source === 'camera'
-          ? 'The camera could not be opened on this device. Choose a photo from the gallery.'
-          : 'The gallery could not be opened. Try again.',
-      );
+    const result = await pickPhoto(source);
+    if (result.kind === 'picked') {
+      setPhoto(result.photo);
+    } else if (result.kind === 'error') {
+      setError(result.message);
     }
   }
 
@@ -65,7 +53,11 @@ export default function ScanScreen() {
       await addScan({ id, createdAt: new Date().toISOString(), photoUri, response, guidance });
       router.replace({ pathname: '/results', params: { id } });
     } catch (caught) {
-      setError(caught instanceof ApiError ? caught.message : 'Something went wrong. Try again.');
+      setError(
+        caught instanceof ApiError
+          ? caught.message
+          : "We couldn't analyze this photo. Check your connection and try again.",
+      );
       setScanning(false);
     }
   }
@@ -74,7 +66,7 @@ export default function ScanScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.preview} onLayout={(event) => setPreviewHeight(event.nativeEvent.layout.height)}>
         {photo ? (
-          <Image source={{ uri: photo.uri }} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel="Selected photo" />
+          <Image source={{ uri: photo.uri }} style={StyleSheet.absoluteFill} contentFit="contain" accessibilityLabel="Selected photo" />
         ) : (
           <View style={styles.placeholder}>
             <View style={styles.placeholderIcon}>
@@ -92,7 +84,11 @@ export default function ScanScreen() {
         {scanning ? <ScanLine height={previewHeight} /> : null}
       </View>
 
-      {scanning ? <Text style={styles.scanningText}>Looking for waste items</Text> : null}
+      {scanning ? (
+        <Text style={styles.scanningText} accessibilityLiveRegion="polite">
+          Analyzing your photo…
+        </Text>
+      ) : null}
 
       {error ? (
         <View style={styles.error} accessibilityRole="alert">
@@ -103,7 +99,7 @@ export default function ScanScreen() {
 
       {photo ? (
         <>
-          <Button label={scanning ? 'Scanning' : 'Scan this photo'} icon="line-scan" onPress={scan} loading={scanning} />
+          <Button label={scanning ? 'Analyzing' : 'Analyze image'} icon="line-scan" onPress={scan} loading={scanning} />
           <View style={styles.pair}>
             <View style={styles.pairItem}>
               <Button label="Retake" icon="camera-retake-outline" variant="secondary" onPress={() => pick('camera')} disabled={scanning} />

@@ -15,9 +15,9 @@ Working on this repo with Claude: [CLAUDE.md](CLAUDE.md) holds the project instr
 
 | Part | State |
 |---|---|
-| Backend API (`backend/`) | Working. Tested with a stand-in detector, and against a real YOLO model trained on synthetic shapes. Not yet run with a waste model. |
+| Backend API (`backend/`) | Matches the API specification. Tested with a stand-in detector, and against a real YOLO model trained on synthetic shapes. Not yet run with a waste model. |
 | Dataset and training scripts (`ai-model/`) | All scripts run end to end on a synthetic dataset. No real dataset has been merged and checked, and no waste model has been trained. |
-| Mobile app (`mobile/`) | Home, Scan, Results, History and Learn screens all work in the web version against the backend with a stand-in detector. Not yet run on a phone. |
+| Mobile app (`mobile/`) | All five screens work in the web version, including real inference through the backend with the synthetic-shapes model. Not yet run as an app on an Android phone. |
 
 ## How the parts fit
 

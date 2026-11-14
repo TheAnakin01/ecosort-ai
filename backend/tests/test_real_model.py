@@ -26,7 +26,7 @@ import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from app import config, detector
+from app import config
 from app.main import app
 
 WEIGHTS = os.getenv("ECOSORT_TEST_WEIGHTS")
@@ -42,10 +42,13 @@ MIN_OVERLAP = 0.8
 @pytest.fixture(scope="module")
 def client():
     pytest.importorskip("ultralytics")
-    original = (config.MODEL_PATH, detector._detector)
-    config.MODEL_PATH, detector._detector = Path(WEIGHTS), None
-    yield TestClient(app)
-    config.MODEL_PATH, detector._detector = original
+    original = config.settings.model_path
+    config.settings.model_path = Path(WEIGHTS)
+    # Entering the client starts the app, which loads the model once.
+    with TestClient(app) as started:
+        assert started.get("/health").json() == {"status": "ok", "model_loaded": True}
+        yield started
+    config.settings.model_path = original
 
 
 def examples(limit: int = 8) -> list[Path]:
@@ -128,10 +131,28 @@ def test_boxes_follow_a_photo_stored_sideways(client):
 
 
 def test_model_is_loaded_once_and_reused(client):
+    loaded = app.state.detector
+    # By default the model runs at the image size it was trained with.
+    assert client.get("/api/v1/model-info").json()["image_size"] == loaded.image_size > 0
     upload(client, examples(1)[0].read_bytes())
-    first = detector._detector
     upload(client, examples(1)[0].read_bytes())
-    assert first is not None and detector._detector is first
+    assert loaded is not None and app.state.detector is loaded
+
+
+def test_weights_for_other_classes_are_refused(tmp_path):
+    """Loading a model trained for different classes must fail, not mislabel everything."""
+    other = os.getenv("ECOSORT_TEST_OTHER_WEIGHTS")
+    if not other:
+        pytest.skip("set ECOSORT_TEST_OTHER_WEIGHTS to weights with different classes, such as yolo11n.pt")
+    # Starting a second client restarts the app, so put the good model back afterwards.
+    original_path, original_detector = config.settings.model_path, app.state.detector
+    config.settings.model_path = Path(other)
+    try:
+        with TestClient(app) as started:
+            assert started.get("/health").json()["model_loaded"] is False
+            assert upload(started, examples(1)[0].read_bytes()).status_code == 503
+    finally:
+        config.settings.model_path, app.state.detector = original_path, original_detector
 
 
 def test_picture_with_no_objects_returns_an_empty_result(client):
@@ -141,3 +162,4 @@ def test_picture_with_no_objects_returns_an_empty_result(client):
     assert body["success"] is True
     assert body["detections"] == []
     assert body["counts"] == {"paper": 0, "plastic": 0, "metal": 0, "organic": 0}
+    assert body["model_version"] == config.settings.model_version
