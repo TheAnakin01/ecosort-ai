@@ -1,5 +1,6 @@
 """Tests for scripts/prepare_dataset.py. Run from ai-model/:  pytest"""
 
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -10,7 +11,7 @@ import yaml
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
-from prepare_dataset import map_class, to_box_line  # noqa: E402
+from prepare_dataset import fallback_split, map_class, source_key, to_box_line  # noqa: E402
 
 
 @pytest.mark.parametrize(
@@ -52,6 +53,36 @@ def test_overrides_win_over_keywords():
 def test_polygon_label_becomes_box():
     line = to_box_line("7 0.2 0.2 0.6 0.2 0.6 0.4 0.2 0.4".split(), 1)
     assert line == "1 0.400000 0.300000 0.400000 0.200000"
+
+
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [
+        # Sticks out past the right edge: clipped to the image.
+        ("0 0.95 0.5 0.2 0.2", "2 0.925000 0.500000 0.150000 0.200000"),
+        ("0 0.5 0.5 0 0.2", None),  # no width
+        ("0 1.5 0.5 0.2 0.2", None),  # entirely outside the image
+        ("0 0.5 abc 0.2 0.2", None),  # not a number
+        ("0 0.5 0.5 0.2", None),  # too few values
+        ("0 0.1 0.1 0.9 0.1 0.9", None),  # odd number of polygon values
+    ],
+)
+def test_invalid_boxes_are_clipped_or_rejected(line, expected):
+    assert to_box_line(line.split(), 2) == expected
+
+
+def test_source_key_groups_roboflow_copies():
+    assert source_key("bottle_12_jpg.rf.abc123.jpg") == "bottle_12_jpg"
+    assert source_key("bottle_12_jpg.rf.zzz999.jpg") == "bottle_12_jpg"
+    assert source_key("plain_photo.jpg") == "plain_photo"
+
+
+def test_fallback_split_keeps_copies_of_one_photo_together():
+    for photo in range(40):
+        splits = {fallback_split(f"photo{photo}_jpg.rf.{copy}.jpg") for copy in ("aa", "bb", "cc")}
+        assert len(splits) == 1
+    used = {fallback_split(f"photo{photo}_jpg.rf.aa.jpg") for photo in range(200)}
+    assert used == {"train", "val", "test"}
 
 
 def make_source(root: Path, names: list[str], splits: dict[str, dict[str, str]]) -> Path:
@@ -113,6 +144,37 @@ def test_merges_two_sources_into_ecosort_layout(tmp_path):
     ]
     assert (out / "images/test/neat__a.jpg").exists()
     assert "glass" in result.stdout and "DROPPED" in result.stdout
+
+    # The build record matches what was written.
+    report = json.loads((out / "dataset_report.json").read_text())
+    assert report["sources"] == ["trashnet", "neat"]
+    assert report["class_mapping"]["trashnet"] == {"cardboard": "paper", "glass": None, "metal": "metal"}
+    assert report["boxes_per_class"] == {"paper": 1, "plastic": 1, "metal": 1, "organic": 1}
+    assert report["boxes_per_class_by_split"]["test"] == {"paper": 0, "plastic": 1, "metal": 0, "organic": 1}
+    assert report["images_per_split"] == {"train": 1, "val": 1, "test": 1}
+    assert report["boxes_dropped_by_source_class"] == {"trashnet: glass": 2}
+    assert report["images_skipped_all_items_dropped"] == 1
+
+
+def test_invalid_source_boxes_are_removed_and_counted(tmp_path):
+    source = make_source(
+        tmp_path / "src",
+        ["paper"],
+        {"train": {"a": "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0 0.2\n0 2.0 2.0 0.1 0.1\n"}},
+    )
+    out = tmp_path / "ecosort"
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "prepare_dataset.py"), str(source), "--out", str(out)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    labels = list((out / "labels").rglob("src__a.txt"))
+    assert len(labels) == 1
+    assert labels[0].read_text() == "0 0.500000 0.500000 0.200000 0.200000\n"
+    assert json.loads((out / "dataset_report.json").read_text())["invalid_boxes_removed"] == 2
+    assert "Invalid boxes removed" in result.stdout
 
 
 def test_dry_run_copies_nothing(tmp_path):

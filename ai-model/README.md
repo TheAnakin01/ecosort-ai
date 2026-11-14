@@ -18,36 +18,74 @@ Datasets the team picked:
 
 Check each dataset's license on its Roboflow page before using it.
 
-## What the merge does
+## The scripts
 
-`scripts/prepare_dataset.py` turns each dataset's own class names into our four:
+Run them in this order, from the `ai-model/` folder. The notebook does the same steps.
+
+| Step | Command | What it does |
+|---|---|---|
+| 1 | `python scripts/prepare_dataset.py <sources> --dry-run` | Shows how each source class will be mapped. Copies nothing. |
+| 2 | `python scripts/prepare_dataset.py <sources>` | Builds `datasets/ecosort/` and writes `dataset_report.json`. |
+| 3 | `python scripts/validate_dataset.py` | Checks the dataset. Training refuses to start until this passes. |
+| 4 | `python scripts/train.py --epochs 50` | Fine-tunes YOLO nano. Prints validation scores per class. |
+| 5 | `python scripts/predict.py photo.jpg` | Runs the model on one photo and saves a copy with boxes drawn. |
+| 6 | `python scripts/evaluate.py --split test` | The final score. Run once, at the very end. |
+
+`<sources>` is the list of downloaded dataset folders, for example `downloads/trash-detection downloads/trashnet downloads/neat-now`.
+
+### How classes are merged
+
+`prepare_dataset.py` turns each dataset's own class names into our four:
 
 - It matches class names by keyword. "PET Bottle" becomes plastic, "Card Board Paper" becomes paper, "Can/Metal" becomes metal.
 - Classes that are none of our four, such as glass, battery and general trash, are dropped.
 - Classes it cannot decide, such as a plain "bottle", are dropped and listed so you can decide. Put your decision in `configs/class_overrides.yaml`.
+- Boxes that are empty or lie outside the image are removed, and boxes that stick out are trimmed to the image.
 - Photos from all sources are copied into one folder with the source name in front, so file names never clash.
 
-Always run it with `--dry-run` first and read the report:
+The keyword mapping is a first draft. A person must review it and record the result in [docs/dataset-card.md](../docs/dataset-card.md).
 
-```
-python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet downloads/neat-now --dry-run
-```
+### What the check looks for
 
-The report shows **Boxes per class**. A class with under 10% of the boxes is flagged. Expect organic to be the weak one; fix it by adding your own annotated photos of peels and food scraps, exported from Roboflow as one more source folder.
+`validate_dataset.py` stops with an error for:
+
+- an image that will not open, or an image and label file that do not come as a pair
+- a box with an unknown class, a bad number, no size, or a position outside the image
+- the same image file, or augmented copies of one Roboflow photo, in more than one split
+- a class with no boxes at all
+
+It warns about a class with under 10% of the boxes, a class missing from the validation or test split, and pictures that look identical across splits. Expect organic to be the weak class; fix it by adding your own annotated photos of peels and food scraps as one more source folder.
+
+If it reports photos in more than one split, delete `datasets/ecosort/` and run step 2 again with `--resplit`. That ignores the sources' own splits and makes a fresh 70/20/10 split in which all copies of a photo stay together.
+
+### Training and scoring
+
+- `train.py` picks the best checkpoint on the validation split and never reads the test split.
+- Each run is saved in `ai-model/runs/<name>/`, with `weights/best.pt` and a `run_info.json` recording the seed, settings, package versions and scores.
+- Copy `best.pt` to `ai-model/weights/best.pt` for the backend.
+- Record every run in [docs/training-log.md](../docs/training-log.md).
+
+Test hard cases with `predict.py`: crushed bottles, low light, overlapping items, a photo with no waste.
 
 ## Running the steps by hand
 
 ```
 pip install -r requirements.txt
-python scripts/prepare_dataset.py downloads/a downloads/b downloads/c
-python scripts/train.py --epochs 50
-python scripts/predict.py my_photo.jpg
 ```
 
-- `train.py` saves the best model to `runs/detect/ecosort-baseline/weights/best.pt`. Copy it to `ai-model/weights/best.pt` for the backend.
-- `predict.py` prints each item found and saves a copy of the photo with boxes drawn.
+Then follow the table above.
 
-Record every training run in [docs/training-log.md](../docs/training-log.md). Test hard cases: crushed bottles, low light, overlapping items, a photo with no waste.
+## Checking that your setup works
+
+To try the whole pipeline in about five minutes on a laptop CPU, without downloading a dataset:
+
+```
+python tests/make_synthetic_dataset.py /tmp/synthetic
+python scripts/validate_dataset.py /tmp/synthetic
+python scripts/train.py --data /tmp/synthetic/data.yaml --epochs 30 --imgsz 320 --name smoke
+```
+
+The synthetic dataset is coloured rectangles, not waste. A model trained on it scores close to perfect because the task is trivial. It proves the scripts run; it is not a result.
 
 ## Tests
 
@@ -56,4 +94,9 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-These cover the class mapping and the merge. Training and prediction have not been run yet, because that needs the real datasets and a GPU.
+These cover the class mapping, the merge and the dataset check, and need no PyTorch. They also run on GitHub for every push.
+
+What has been run so far:
+
+- All the scripts above have been run end to end on the synthetic dataset, on a CPU.
+- No real waste dataset has been merged and checked yet, and no real model has been trained to completion.

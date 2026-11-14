@@ -19,8 +19,11 @@ The approved detector is a pretrained **Ultralytics YOLO nano** model, fine-tune
 
 - `configs/data.yaml` — dataset paths and the class-index mapping
 - `scripts/prepare_dataset.py` — merges source datasets into the four classes
-- `scripts/train.py` — fine-tunes from pretrained weights
+- `scripts/validate_dataset.py` — checks the merged dataset; training refuses to start until it passes
+- `scripts/train.py` — fine-tunes from pretrained weights and scores the validation split
+- `scripts/evaluate.py` — scores given weights on the validation or test split
 - `scripts/predict.py` — runs the trained model on one image
+- `tests/make_synthetic_dataset.py` — a fake coloured-shapes dataset for checking that the pipeline runs
 - `notebooks/train_ecosort.ipynb` — the same steps for Google Colab
 
 Work within this pipeline. Do not replace YOLO with another model family and do not rewrite the training pipeline.
