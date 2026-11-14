@@ -38,7 +38,7 @@ The report shows **Boxes per class**. A class with under 10% of the boxes is fla
 ## Running the steps by hand
 
 ```
-pip install ultralytics pyyaml
+pip install -r requirements.txt
 python scripts/prepare_dataset.py downloads/a downloads/b downloads/c
 python scripts/train.py --epochs 50
 python scripts/predict.py my_photo.jpg
@@ -52,7 +52,7 @@ Record every training run in [docs/training-log.md](../docs/training-log.md). Te
 ## Tests
 
 ```
-pip install pytest pyyaml
+pip install -r requirements-dev.txt
 pytest
 ```
 

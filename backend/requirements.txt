@@ -1,5 +1,6 @@
-fastapi
-uvicorn[standard]
-python-multipart
-pillow
-ultralytics
+# Everything needed to run the backend with a real model.
+-r requirements-base.txt
+
+# Brings in PyTorch. Pinned to the release current when this file was written;
+# the backend has not yet been run against it, because no model is trained.
+ultralytics~=8.4.212

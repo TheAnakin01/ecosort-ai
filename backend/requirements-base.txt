@@ -1,0 +1,6 @@
+# API dependencies. These versions are the ones the tests were run with.
+# "~=" allows bug-fix updates but not a new minor version.
+fastapi~=0.162.7
+uvicorn[standard]~=0.54.0
+python-multipart~=0.0.32
+pillow~=12.3.0

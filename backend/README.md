@@ -10,6 +10,14 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
+`requirements.txt` installs Ultralytics and PyTorch, which is a large download. The three requirement files:
+
+| File | Installs |
+|---|---|
+| `requirements-base.txt` | The API itself |
+| `requirements.txt` | The API plus Ultralytics, for real inference |
+| `requirements-dev.txt` | The API plus test tools, without Ultralytics |
+
 Open http://127.0.0.1:8000/docs to try every endpoint in the browser.
 
 The server starts without a trained model, but `/api/v1/detect` answers with error 503 until `ai-model/weights/best.pt` exists.
@@ -30,7 +38,7 @@ Each detection has `category`, `confidence`, `low_confidence` and `bbox` as `[x1
 
 ## Settings
 
-Set as environment variables. Defaults are in `app/config.py`.
+Set as environment variables. Defaults are in `app/config.py`. To keep them in a file, copy `.env.example` to `.env` and start the server with `uvicorn app.main:app --env-file .env`.
 
 | Variable | Default | Meaning |
 |---|---|---|
@@ -48,4 +56,6 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-The tests use a fake detector, so they run without PyTorch or a trained model.
+The tests use a fake detector, so they run without PyTorch or a trained model. There is no test against a real model yet.
+
+They also run automatically on GitHub for every push (`.github/workflows/tests.yml`), together with `ruff check backend ai-model` for lint.
