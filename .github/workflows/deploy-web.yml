@@ -1,0 +1,58 @@
+# Builds the web version of the app and publishes it with GitHub Pages.
+# The site appears at https://theanakin01.github.io/ecosort-ai/
+#
+# One-time setup: repo Settings -> Pages -> Source: "GitHub Actions".
+# To point the site at a hosted backend, add a repository variable named
+# API_URL (Settings -> Secrets and variables -> Actions -> Variables).
+
+name: Deploy web app
+
+on:
+  push:
+    branches: [main]
+    paths: ["mobile/**", ".github/workflows/deploy-web.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npx expo export --platform web
+        env:
+          EXPO_PUBLIC_API_URL: ${{ vars.API_URL }}
+      # GitHub Pages serves 404.html for unknown paths; this lets links such
+      # as /scan load the app instead of an error page.
+      - run: cp dist/index.html dist/404.html
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: mobile/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

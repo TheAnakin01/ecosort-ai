@@ -4,6 +4,11 @@ An app that finds several waste items in one photo, labels each one as paper, pl
 
 The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
 
+## Open it
+
+- **App in a browser:** https://theanakin01.github.io/ecosort-ai/ (works on a phone; scanning stays off until a backend is hosted and its address is set, see [mobile/README.md](mobile/README.md))
+- **Train the model:** [open the notebook in Colab](https://colab.research.google.com/github/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort.ipynb)
+
 ## Status
 
 | Part | State |

@@ -36,6 +36,14 @@ Scans are saved on the device only (the last 50). There are no accounts and no c
 
 Restart `npx expo start` after changing `.env`.
 
+## The hosted web version
+
+Every push to `main` that changes `mobile/` rebuilds the web version and publishes it at
+https://theanakin01.github.io/ecosort-ai/ using GitHub Pages (`.github/workflows/deploy-web.yml`).
+
+- One-time setup: repo **Settings → Pages → Source: GitHub Actions**.
+- The site has no backend built in, so it shows "Preview only" and scanning is off. Once the backend is hosted at an `https://` address, add a repository variable named `API_URL` with that address (Settings → Secrets and variables → Actions → Variables) and re-run the workflow.
+
 ## Checks
 
 ```
