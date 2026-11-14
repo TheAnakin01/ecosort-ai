@@ -16,6 +16,7 @@ const STATUS_TEXT: Record<ServerStatus | 'checking', { label: string; color: str
   ready: { label: 'Server connected', color: theme.success, icon: 'cloud-check-outline' },
   'no-model': { label: 'Server connected, but no trained model is loaded', color: theme.warning, icon: 'alert-circle-outline' },
   offline: { label: 'Server not reachable. Tap to retry', color: theme.danger, icon: 'cloud-off-outline' },
+  'not-configured': { label: 'Preview only: no server is connected yet, so scanning is off', color: theme.warning, icon: 'cloud-off-outline' },
 };
 
 const STEPS = [

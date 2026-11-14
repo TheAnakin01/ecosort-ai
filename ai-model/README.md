@@ -4,20 +4,17 @@ Trains a YOLO nano detector on four classes: paper, plastic, metal, organic.
 
 ## The quick way: the Colab notebook
 
-Open [notebooks/train_ecosort.ipynb](notebooks/train_ecosort.ipynb) in Google Colab and run it top to bottom. It downloads the three Roboflow datasets, merges them, trains, and gives you `best.pt`.
+[Open the notebook in Colab](https://colab.research.google.com/github/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort.ipynb) and run it top to bottom. It downloads the three Roboflow datasets, merges them, trains, and gives you `best.pt`.
 
-You need to fill in two things in the notebook:
-
-1. Your Roboflow API key (Roboflow → Settings → API Keys). Never commit it to GitHub.
-2. The workspace, project and version of each dataset. They are in the dataset's address: `universe.roboflow.com/<workspace>/<project>`.
+The only thing you supply is your Roboflow API key (Roboflow → Settings → API Keys). The notebook asks for it when it runs and does not save it.
 
 Datasets the team picked:
 
 | Dataset | Notes |
 |---|---|
-| Trash Detection Dataset | Fill in workspace and project |
-| TrashNet – Annotated Trash | The original TrashNet classes are cardboard, glass, metal, paper, plastic and trash. It has **no organic class**. |
-| Neat Now Waste Detection | Fill in workspace and project |
+| [Trash Detection](https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8) | |
+| [TrashNet: annotated images of trash](https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection) | Classes are cardboard, glass, metal, paper, plastic and trash. It has **no organic class**. Licensed CC BY 4.0. |
+| [Neat Now](https://universe.roboflow.com/fyp-gojku/neat-now) | |
 
 Check each dataset's license on its Roboflow page before using it.
 

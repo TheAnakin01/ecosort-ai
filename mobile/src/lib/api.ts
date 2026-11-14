@@ -4,7 +4,20 @@ import type { Category, DetectResponse, Guidance, Photo } from './types';
 
 // Set EXPO_PUBLIC_API_URL in mobile/.env. On a real phone "localhost" means
 // the phone itself, so use your laptop's Wi-Fi IP address there.
-export const API_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8000').replace(/\/$/, '');
+const configuredUrl = process.env.EXPO_PUBLIC_API_URL || '';
+export const API_URL = (configuredUrl || 'http://localhost:8000').replace(/\/$/, '');
+
+/**
+ * False on the hosted website when no backend address was built in. There the
+ * localhost default points at the visitor's own device, where nothing runs.
+ */
+export function isServerConfigured(): boolean {
+  if (configuredUrl) return true;
+  if (Platform.OS !== 'web') return true;
+  return ['localhost', '127.0.0.1'].includes(globalThis.location?.hostname ?? '');
+}
+
+const NOT_CONFIGURED = 'This app is not connected to a server yet, so it cannot scan photos.';
 
 const TIMEOUT_MS = 30_000;
 
@@ -12,6 +25,9 @@ const TIMEOUT_MS = 30_000;
 export class ApiError extends Error {}
 
 async function request(path: string, init?: RequestInit, timeoutMs = TIMEOUT_MS): Promise<Response> {
+  if (!isServerConfigured()) {
+    throw new ApiError(NOT_CONFIGURED);
+  }
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   let response: Response;
@@ -70,10 +86,13 @@ export async function scanPhoto(photo: Photo): Promise<{ response: DetectRespons
   return { response, guidance };
 }
 
-export type ServerStatus = 'ready' | 'no-model' | 'offline';
+export type ServerStatus = 'ready' | 'no-model' | 'offline' | 'not-configured';
 
 /** Is the backend reachable, and does it have a trained model loaded? */
 export async function checkServer(): Promise<ServerStatus> {
+  if (!isServerConfigured()) {
+    return 'not-configured';
+  }
   try {
     const response = await request('/api/v1/model-info', undefined, 5_000);
     const info = await response.json();
