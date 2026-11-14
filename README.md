@@ -2,7 +2,9 @@
 
 An app that finds several waste items in one photo, labels each one as paper, plastic, metal or organic, and tells you which bin it goes in. Built for Srujan 2026.
 
-The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
+The approved specification is the documentation pack in [docs/EcoSort-AI-Agent-Harness/](docs/EcoSort-AI-Agent-Harness/README.md). The earlier blueprint is [Smart waste ai.md](Smart%20waste%20ai.md).
+
+Working on this repo with Claude: [CLAUDE.md](CLAUDE.md) holds the project instructions, and `.claude/skills/` holds ten task-specific skills that Claude loads automatically.
 
 ## Open it
 
