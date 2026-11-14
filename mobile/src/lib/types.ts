@@ -18,6 +18,8 @@ export type DetectResponse = {
   total_objects: number;
   counts: Record<Category, number>;
   detections: Detection[];
+  /** Missing on scans saved before the backend reported it. */
+  model_version?: string;
   message: string | null;
 };
 

@@ -24,7 +24,7 @@ export default function ResultsScreen() {
   }
 
   const { response, guidance } = record;
-  const itemWord = response.total_objects === 1 ? 'item' : 'items';
+  const itemWord = response.total_objects === 1 ? 'object' : 'objects';
 
   return (
     <ScrollView contentContainerStyle={styles.content}>
@@ -39,10 +39,14 @@ export default function ResultsScreen() {
 
       <View style={styles.titleRow}>
         <Text style={styles.title}>
-          {response.total_objects === 0 ? 'Nothing found' : `${response.total_objects} ${itemWord} found`}
+          {response.total_objects === 0 ? 'Nothing detected' : `${response.total_objects} ${itemWord} detected`}
         </Text>
         <Text style={styles.when}>{formatWhen(record.createdAt)}</Text>
       </View>
+
+      <Text style={styles.estimate}>
+        These are AI estimates of visible materials, not a guarantee of what an item is made of.
+      </Text>
 
       {response.message ? (
         <View style={styles.notice}>
@@ -83,16 +87,20 @@ export default function ResultsScreen() {
             onPress={() => setSelectedId(selected ? null : detection.id)}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            accessibilityLabel={`Item ${detection.id}, ${info.label}, ${percent} percent sure`}
+            accessibilityLabel={`Item ${detection.id}, ${detection.low_confidence ? 'possibly ' : ''}${
+              info.label
+            }, model confidence ${percent} percent`}
             style={[styles.item, shadow, selected && { borderColor: info.color }]}>
             <View style={[styles.itemBadge, { backgroundColor: info.color }]}>
               <Text style={styles.itemBadgeText}>{detection.id}</Text>
             </View>
             <View style={styles.itemBody}>
               <View style={styles.itemTop}>
-                <Text style={styles.itemTitle}>{info.label}</Text>
+                <Text style={styles.itemTitle}>
+                  {detection.low_confidence ? `Possibly ${info.label.toLowerCase()}` : info.label}
+                </Text>
                 <Text style={styles.itemPercent}>
-                  {percent}% sure{detection.low_confidence ? ' · uncertain' : ''}
+                  Model confidence {percent}%{detection.low_confidence ? ' · uncertain' : ''}
                 </Text>
               </View>
               <View style={styles.barTrack}>
@@ -128,7 +136,9 @@ export default function ResultsScreen() {
       })}
       {guidance.length > 0 ? <Text style={styles.disclaimer}>{guidance[0].disclaimer}</Text> : null}
 
-      <Button label="Scan another photo" icon="line-scan" onPress={() => router.replace('/scan')} />
+      <Button label="Scan another" icon="line-scan" onPress={() => router.replace('/scan')} />
+
+      {response.model_version ? <Text style={styles.version}>Model version: {response.model_version}</Text> : null}
     </ScrollView>
   );
 }
@@ -175,4 +185,6 @@ const styles = StyleSheet.create({
   tipIcon: { marginTop: 2 },
   tipText: { flex: 1, fontSize: 15, lineHeight: 21, color: theme.text },
   disclaimer: { fontSize: 13, lineHeight: 19, color: theme.muted },
+  estimate: { fontSize: 13, lineHeight: 19, color: theme.muted, marginTop: -6 },
+  version: { fontSize: 12, color: theme.faint, textAlign: 'center' },
 });

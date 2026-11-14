@@ -47,7 +47,7 @@ export function DetectionOverlay({ uri, imageWidth, imageHeight, detections, sel
             key={detection.id}
             onPress={() => onSelect(selected ? null : detection.id)}
             accessibilityRole="button"
-            accessibilityLabel={`Item ${detection.id}, ${label}`}
+            accessibilityLabel={`Item ${detection.id}, ${detection.low_confidence ? 'possibly ' : ''}${label}`}
             accessibilityState={{ selected }}
             style={[
               styles.box,
@@ -59,10 +59,14 @@ export function DetectionOverlay({ uri, imageWidth, imageHeight, detections, sel
                 opacity: dimmed ? 0.35 : 1,
               },
             ]}>
-            <Text style={[styles.tag, { backgroundColor: color }]} numberOfLines={1}>
-              {detection.id} {label}
-              {detection.low_confidence ? ' ?' : ''}
-            </Text>
+            {/* The tag may be wider than a small box, so it sits in its own
+                layer and is allowed to spill past the box's right edge. */}
+            <View style={styles.tagLayer} pointerEvents="none">
+              <Text style={[styles.tag, { backgroundColor: color }]} numberOfLines={1}>
+                {detection.id} {label}
+                {detection.low_confidence ? ' ?' : ''}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
@@ -83,6 +87,7 @@ const styles = StyleSheet.create({
   },
   missingText: { color: theme.muted, fontSize: 14, textAlign: 'center' },
   box: { position: 'absolute', borderRadius: 6 },
+  tagLayer: { position: 'absolute', top: 0, left: 0, width: 160 },
   tag: {
     alignSelf: 'flex-start',
     color: '#FFFFFF',

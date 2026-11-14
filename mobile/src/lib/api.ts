@@ -22,7 +22,15 @@ const NOT_CONFIGURED = 'This app is not connected to a server yet, so it cannot 
 const TIMEOUT_MS = 30_000;
 
 /** An error with a message that is safe to show to the user. */
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  /** The backend's error code, such as "UPLOAD_TOO_LARGE", when it sent one. */
+  code?: string;
+
+  constructor(message: string, code?: string) {
+    super(message);
+    this.code = code;
+  }
+}
 
 async function request(path: string, init?: RequestInit, timeoutMs = TIMEOUT_MS): Promise<Response> {
   if (!isServerConfigured()) {
@@ -44,10 +52,13 @@ async function request(path: string, init?: RequestInit, timeoutMs = TIMEOUT_MS)
   }
 
   if (!response.ok) {
-    // FastAPI puts the reason in a "detail" field.
+    // The backend answers every failure as { success: false, error: { code, message } }.
     const body = await response.json().catch(() => null);
-    const detail = typeof body?.detail === 'string' ? body.detail : `Server error ${response.status}`;
-    throw new ApiError(detail);
+    const message =
+      typeof body?.error?.message === 'string'
+        ? body.error.message
+        : "We couldn't analyze this photo. Check your connection and try again.";
+    throw new ApiError(message, typeof body?.error?.code === 'string' ? body.error.code : undefined);
   }
   return response;
 }
@@ -94,9 +105,9 @@ export async function checkServer(): Promise<ServerStatus> {
     return 'not-configured';
   }
   try {
-    const response = await request('/api/v1/model-info', undefined, 5_000);
-    const info = await response.json();
-    return info.model_loaded ? 'ready' : 'no-model';
+    const response = await request('/health', undefined, 5_000);
+    const health = await response.json();
+    return health.model_loaded ? 'ready' : 'no-model';
   } catch {
     return 'offline';
   }

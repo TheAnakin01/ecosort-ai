@@ -6,7 +6,7 @@ The EcoSort AI phone app, built with React Native and Expo (SDK 58).
 
 | Screen | File | What it does |
 |---|---|---|
-| Home | `src/app/(tabs)/index.tsx` | Scan button, server status, your totals, recent scans |
+| Home | `src/app/(tabs)/index.tsx` | Scan and gallery buttons, server status, your totals, recent scans |
 | History | `src/app/(tabs)/history.tsx` | Every saved scan; open, delete one, or clear all |
 | Learn | `src/app/(tabs)/learn.tsx` | What belongs in each material and common mistakes |
 | Scan | `src/app/scan.tsx` | Take or pick a photo, preview it, send it to the backend |

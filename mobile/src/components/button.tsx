@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 
 import { radius, theme } from '@/lib/theme';
 
-type Variant = 'primary' | 'secondary' | 'onDark' | 'danger';
+type Variant = 'primary' | 'secondary' | 'onDark' | 'onDarkOutline' | 'danger';
 
 type Props = {
   label: string;
@@ -19,6 +19,7 @@ const COLORS: Record<Variant, { background: string; text: string; border: string
   primary: { background: theme.brand, text: '#FFFFFF', border: theme.brand },
   secondary: { background: theme.card, text: theme.brand, border: theme.border },
   onDark: { background: theme.accent, text: theme.brandDark, border: theme.accent },
+  onDarkOutline: { background: 'transparent', text: '#FFFFFF', border: '#5F8C7B' },
   danger: { background: theme.danger, text: '#FFFFFF', border: theme.danger },
 };
 

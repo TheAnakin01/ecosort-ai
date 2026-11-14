@@ -18,7 +18,7 @@ type Props = {
 export function ScanRow({ record, onPress, trailing }: Props) {
   const { response } = record;
   const found = CATEGORIES.filter((category) => response.counts[category] > 0);
-  const itemWord = response.total_objects === 1 ? 'item' : 'items';
+  const itemWord = response.total_objects === 1 ? 'object' : 'objects';
 
   return (
     <Pressable
@@ -29,7 +29,7 @@ export function ScanRow({ record, onPress, trailing }: Props) {
       <Image source={{ uri: record.photoUri }} style={styles.thumb} contentFit="cover" />
       <View style={styles.body}>
         <Text style={styles.title}>
-          {response.total_objects === 0 ? 'Nothing found' : `${response.total_objects} ${itemWord}`}
+          {response.total_objects === 0 ? 'Nothing detected' : `${response.total_objects} ${itemWord}`}
         </Text>
         <Text style={styles.when}>{formatWhen(record.createdAt)}</Text>
         {found.length > 0 ? (

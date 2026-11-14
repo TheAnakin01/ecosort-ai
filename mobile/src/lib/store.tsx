@@ -3,7 +3,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 
 import { addRecord, parseHistory, removeRecord } from './history';
 import { forgetPhoto } from './photo-store';
-import type { ScanRecord } from './types';
+import type { Photo, ScanRecord } from './types';
 
 const STORAGE_KEY = 'ecosort.history.v1';
 
@@ -14,6 +14,9 @@ type Store = {
   addScan: (record: ScanRecord) => Promise<void>;
   removeScan: (id: string) => Promise<void>;
   clearHistory: () => Promise<void>;
+  /** A photo picked on the Home screen, waiting for the Scan screen to show it. */
+  pendingPhoto: Photo | null;
+  setPendingPhoto: (photo: Photo | null) => void;
 };
 
 const StoreContext = createContext<Store | null>(null);
@@ -36,6 +39,7 @@ async function forgetPhotos(records: ScanRecord[]): Promise<void> {
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [history, setHistory] = useState<ScanRecord[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [pendingPhoto, setPendingPhoto] = useState<Photo | null>(null);
 
   useEffect(() => {
     AsyncStorage.getItem(STORAGE_KEY)
@@ -73,7 +77,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <StoreContext.Provider value={{ loaded, history, addScan, removeScan, clearHistory }}>
+    <StoreContext.Provider
+      value={{ loaded, history, addScan, removeScan, clearHistory, pendingPhoto, setPendingPhoto }}>
       {children}
     </StoreContext.Provider>
   );
