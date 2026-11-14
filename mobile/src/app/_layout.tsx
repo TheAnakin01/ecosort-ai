@@ -1,25 +1,25 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
-import { theme } from '@/lib/categories';
-import { ScanProvider } from '@/lib/scan-context';
+import { StoreProvider } from '@/lib/store';
+import { theme } from '@/lib/theme';
 
 export default function RootLayout() {
   return (
-    <ScanProvider>
+    <StoreProvider>
       <StatusBar style="dark" />
       <Stack
         screenOptions={{
           headerStyle: { backgroundColor: theme.background },
           headerTintColor: theme.brand,
-          headerTitleStyle: { color: theme.text },
+          headerTitleStyle: { color: theme.text, fontWeight: '700' },
           headerShadowVisible: false,
           contentStyle: { backgroundColor: theme.background },
         }}>
-        <Stack.Screen name="index" options={{ title: 'EcoSort AI' }} />
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="scan" options={{ title: 'Scan waste' }} />
         <Stack.Screen name="results" options={{ title: 'Results' }} />
       </Stack>
-    </ScanProvider>
+    </StoreProvider>
   );
 }

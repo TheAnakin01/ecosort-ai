@@ -6,11 +6,13 @@ The EcoSort AI phone app, built with React Native and Expo (SDK 58).
 
 | Screen | File | What it does |
 |---|---|---|
-| Home | `src/app/index.tsx` | Intro and the four categories |
+| Home | `src/app/(tabs)/index.tsx` | Scan button, server status, your totals, recent scans |
+| History | `src/app/(tabs)/history.tsx` | Every saved scan; open, delete one, or clear all |
+| Learn | `src/app/(tabs)/learn.tsx` | What belongs in each material and common mistakes |
 | Scan | `src/app/scan.tsx` | Take or pick a photo, preview it, send it to the backend |
-| Results | `src/app/results.tsx` | Photo with boxes, counts, item list, sorting tips |
+| Results | `src/app/results.tsx` | Photo with tappable boxes, counts, item list, sorting tips |
 
-History and Learn screens from the blueprint are not built yet.
+Scans are saved on the device only (the last 50). There are no accounts and no cloud database.
 
 ## Run it
 
@@ -49,5 +51,7 @@ Use EAS Build: `npx eas-cli@latest build -p android --profile preview`. A releas
 ## Notes
 
 - Styling uses React Native's built-in `StyleSheet`, not NativeWind as the blueprint planned. It needs no extra setup.
+- History uses on-device storage, not Supabase as the blueprint planned.
+- The home screen shows whether the backend is reachable. Tap that line to check again.
 - The app icon and splash screen are still the Expo defaults in `assets/images/`.
 - `AGENTS.md` came with the Expo template. It gives AI coding tools the rules for this Expo version.

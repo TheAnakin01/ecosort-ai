@@ -1,0 +1,115 @@
+"""Tests for scripts/prepare_dataset.py. Run from ai-model/:  pytest"""
+
+import subprocess
+import sys
+from pathlib import Path
+
+import pytest
+import yaml
+
+SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
+sys.path.insert(0, str(SCRIPTS))
+
+from prepare_dataset import map_class, to_box_line  # noqa: E402
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("Paper", "paper"),
+        ("Card Board Paper", "paper"),
+        ("News Paper", "paper"),
+        ("PET Bottle", "plastic"),
+        ("HDPE Plastic", "plastic"),
+        ("Single-Use-Plastic", "plastic"),
+        ("plastic_bag", "plastic"),
+        ("Can/Metal", "metal"),
+        ("Aluminium foil", "metal"),
+        ("organic_waste", "organic"),
+        ("Food (Biodegradable)", "organic"),
+        ("banana peel", "organic"),
+        ("Glass Bottle", None),
+        ("battery can", None),
+        ("e-waste", None),
+        ("general_waste", None),
+        ("trash", None),
+        ("Bottle", None),  # could be glass or plastic
+        ("candy", None),  # "can" must match as a whole word
+        ("Paper Plastic cup", None),  # two materials
+    ],
+)
+def test_map_class_by_keyword(name, expected):
+    assert map_class(name, {}) == expected
+
+
+def test_overrides_win_over_keywords():
+    assert map_class("Bottle", {"bottle": "plastic"}) == "plastic"
+    assert map_class("Paper", {"paper": "drop"}) is None
+    with pytest.raises(ValueError):
+        map_class("Bottle", {"bottle": "glass"})
+
+
+def test_polygon_label_becomes_box():
+    line = to_box_line("7 0.2 0.2 0.6 0.2 0.6 0.4 0.2 0.4".split(), 1)
+    assert line == "1 0.400000 0.300000 0.400000 0.200000"
+
+
+def make_source(root: Path, names: list[str], splits: dict[str, dict[str, str]]) -> Path:
+    (root / "data.yaml").parent.mkdir(parents=True)
+    (root / "data.yaml").write_text(yaml.safe_dump({"names": names}))
+    for split, files in splits.items():
+        (root / split / "images").mkdir(parents=True)
+        (root / split / "labels").mkdir(parents=True)
+        for stem, label in files.items():
+            (root / split / "images" / f"{stem}.jpg").write_bytes(b"fake image")
+            (root / split / "labels" / f"{stem}.txt").write_text(label)
+    return root
+
+
+def test_merges_two_sources_into_ecosort_layout(tmp_path):
+    first = make_source(
+        tmp_path / "trashnet",
+        ["cardboard", "glass", "metal"],
+        {
+            "train": {"a": "0 0.5 0.5 0.2 0.2\n1 0.1 0.1 0.1 0.1\n", "only_glass": "1 0.5 0.5 0.2 0.2\n"},
+            "valid": {"b": "2 0.3 0.3 0.1 0.1\n"},
+        },
+    )
+    second = make_source(tmp_path / "neat", ["organic", "PET Bottle"], {"test": {"a": "0 0.5 0.5 0.3 0.3\n1 0.2 0.2 0.1 0.1\n"}})
+    out = tmp_path / "ecosort"
+    overrides = tmp_path / "overrides.yaml"
+    overrides.write_text("cardboard: paper\n")
+
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "prepare_dataset.py"), str(first), str(second), "--out", str(out), "--overrides", str(overrides)],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+
+    # cardboard -> paper (0); the glass box is removed from the same photo.
+    assert (out / "labels/train/trashnet__a.txt").read_text() == "0 0.500000 0.500000 0.200000 0.200000\n"
+    # A photo with only dropped items is left out entirely.
+    assert not (out / "images/train/trashnet__only_glass.jpg").exists()
+    # "valid" is renamed to "val"; metal is class 2.
+    assert (out / "labels/val/trashnet__b.txt").read_text().startswith("2 ")
+    # Same file name in two sources does not collide; organic is 3, plastic is 1.
+    assert (out / "labels/test/neat__a.txt").read_text().split("\n")[:2] == [
+        "3 0.500000 0.500000 0.300000 0.300000",
+        "1 0.200000 0.200000 0.100000 0.100000",
+    ]
+    assert (out / "images/test/neat__a.jpg").exists()
+    assert "glass" in result.stdout and "DROPPED" in result.stdout
+
+
+def test_dry_run_copies_nothing(tmp_path):
+    source = make_source(tmp_path / "src", ["paper"], {"train": {"a": "0 0.5 0.5 0.2 0.2\n"}})
+    out = tmp_path / "ecosort"
+    result = subprocess.run(
+        [sys.executable, str(SCRIPTS / "prepare_dataset.py"), str(source), "--out", str(out), "--dry-run"],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 0, result.stderr
+    assert not out.exists()
+    assert "paper" in result.stdout

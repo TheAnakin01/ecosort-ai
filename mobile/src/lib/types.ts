@@ -37,8 +37,12 @@ export type Photo = {
   file?: File;
 };
 
-export type ScanResult = {
-  photo: Photo;
+/** One finished scan, as kept in the history. */
+export type ScanRecord = {
+  id: string;
+  /** ISO date string. */
+  createdAt: string;
+  photoUri: string;
   response: DetectResponse;
   guidance: Guidance[];
 };

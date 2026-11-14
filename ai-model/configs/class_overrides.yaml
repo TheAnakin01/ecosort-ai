@@ -1,0 +1,15 @@
+# Manual class mappings for scripts/prepare_dataset.py.
+#
+# The script maps source classes to our four by keyword. Use this file when it
+# gets one wrong or cannot decide. Run the script with --dry-run to see the
+# mapping first.
+#
+# Format:  source class name (lower case): paper | plastic | metal | organic | drop
+
+# TrashNet has separate cardboard and paper classes; both are paper for us.
+cardboard: paper
+
+# Examples. Uncomment and edit the ones your datasets need.
+# bottle: plastic        # only if every "bottle" in that dataset is plastic
+# cup: drop              # paper and plastic cups look alike; safer to drop
+# banana peel: organic

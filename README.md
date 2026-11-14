@@ -9,8 +9,8 @@ The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
 | Part | State |
 |---|---|
 | Backend API (`backend/`) | Working and tested with a stand-in detector. It has not run with a real model yet. |
-| Training and prediction scripts (`ai-model/`) | Written. Not run yet: there is no dataset or trained model so far. |
-| Mobile app (`mobile/`) | Home, Scan and Results screens work in the web version against the backend with a stand-in detector. Not yet run on a phone. |
+| Dataset and training scripts (`ai-model/`) | The dataset merge script is tested. Training and prediction are written but not run yet: no model has been trained. |
+| Mobile app (`mobile/`) | Home, Scan, Results, History and Learn screens all work in the web version against the backend with a stand-in detector. Not yet run on a phone. |
 
 ## How the parts fit
 
@@ -22,7 +22,7 @@ The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
 ## Folders
 
 ```
-ai-model/   dataset config, training and prediction scripts
+ai-model/   dataset merge, training and prediction scripts, Colab notebook
 backend/    FastAPI server that serves the model
 mobile/     React Native + Expo phone app
 docs/       training log
