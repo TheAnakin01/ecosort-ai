@@ -56,6 +56,8 @@ pip install -r requirements-dev.txt
 pytest
 ```
 
-The tests use a fake detector, so they run without PyTorch or a trained model. There is no test against a real model yet.
+The tests use a fake detector, so they run without PyTorch or a trained model.
+
+`tests/test_real_model.py` checks the API against a real YOLO model: that detections land on the labelled objects, that boxes follow a photo stored sideways, and that the model is loaded once. It is skipped unless you set two environment variables; the file's first lines explain how. It has been run against a model trained on synthetic coloured shapes, which proves the plumbing. It has not been run against a waste model, because none exists yet.
 
 They also run automatically on GitHub for every push (`.github/workflows/tests.yml`), together with `ruff check backend ai-model` for lint.
