@@ -1,8 +1,11 @@
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { boxToPercent } from '@/lib/boxes';
 import { CATEGORY_INFO } from '@/lib/categories';
+import { radius, theme } from '@/lib/theme';
 import type { Detection } from '@/lib/types';
 
 type Props = {
@@ -10,45 +13,83 @@ type Props = {
   imageWidth: number;
   imageHeight: number;
   detections: Detection[];
+  selectedId: number | null;
+  onSelect: (id: number | null) => void;
 };
 
-/** The photo with a labelled box drawn over each detected item. */
-export function DetectionOverlay({ uri, imageWidth, imageHeight, detections }: Props) {
+/** The photo with a labelled, tappable box drawn over each detected item. */
+export function DetectionOverlay({ uri, imageWidth, imageHeight, detections, selectedId, onSelect }: Props) {
+  const [failed, setFailed] = useState(false);
+
+  if (failed) {
+    return (
+      <View style={[styles.frame, styles.missing, { aspectRatio: imageWidth / imageHeight }]}>
+        <MaterialCommunityIcons name="image-off-outline" size={32} color={theme.faint} />
+        <Text style={styles.missingText}>The photo for this scan is no longer available.</Text>
+      </View>
+    );
+  }
+
   return (
     // The frame takes the photo's aspect ratio, so the photo fills it exactly
     // and box positions can be plain percentages.
-    <View style={[styles.frame, { aspectRatio: imageWidth / imageHeight }]}>
-      <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="fill" accessibilityLabel="Scanned photo" />
+    <Pressable
+      style={[styles.frame, { aspectRatio: imageWidth / imageHeight }]}
+      onPress={() => onSelect(null)}
+      accessibilityLabel="Scanned photo">
+      <Image source={{ uri }} style={StyleSheet.absoluteFill} contentFit="fill" onError={() => setFailed(true)} />
       {detections.map((detection) => {
         const { label, color } = CATEGORY_INFO[detection.category];
+        const selected = detection.id === selectedId;
+        const dimmed = selectedId !== null && !selected;
         return (
-          <View
+          <Pressable
             key={detection.id}
+            onPress={() => onSelect(selected ? null : detection.id)}
+            accessibilityRole="button"
+            accessibilityLabel={`Item ${detection.id}, ${label}`}
+            accessibilityState={{ selected }}
             style={[
               styles.box,
               boxToPercent(detection.bbox, imageWidth, imageHeight),
-              { borderColor: color, borderStyle: detection.low_confidence ? 'dashed' : 'solid' },
+              {
+                borderColor: color,
+                borderStyle: detection.low_confidence ? 'dashed' : 'solid',
+                borderWidth: selected ? 4 : 2,
+                opacity: dimmed ? 0.35 : 1,
+              },
             ]}>
             <Text style={[styles.tag, { backgroundColor: color }]} numberOfLines={1}>
-              {detection.id}. {label}
+              {detection.id} {label}
               {detection.low_confidence ? ' ?' : ''}
             </Text>
-          </View>
+          </Pressable>
         );
       })}
-    </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  frame: { width: '100%', borderRadius: 12, overflow: 'hidden', backgroundColor: '#000000' },
-  box: { position: 'absolute', borderWidth: 2, borderRadius: 4 },
+  frame: { width: '100%', borderRadius: radius.lg, overflow: 'hidden', backgroundColor: '#0B1410' },
+  missing: {
+    backgroundColor: theme.card,
+    borderWidth: 1,
+    borderColor: theme.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 24,
+  },
+  missingText: { color: theme.muted, fontSize: 14, textAlign: 'center' },
+  box: { position: 'absolute', borderRadius: 6 },
   tag: {
     alignSelf: 'flex-start',
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
-    paddingHorizontal: 5,
-    paddingVertical: 1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderBottomRightRadius: 6,
   },
 });
