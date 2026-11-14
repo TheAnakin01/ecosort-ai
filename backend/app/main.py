@@ -16,7 +16,7 @@ from PIL import Image, ImageOps, UnidentifiedImageError
 from . import config
 from .detector import ModelNotAvailable, YoloDetector, get_detector
 from .guidance import DISCLAIMER, GUIDANCE
-from .schemas import CategoryGuidance, DetectResponse, Detection, ModelInfo
+from .schemas import CategoryGuidance, Detection, DetectResponse, ModelInfo
 
 app = FastAPI(title="EcoSort AI", version="0.1.0")
 

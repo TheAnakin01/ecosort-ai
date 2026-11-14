@@ -1,0 +1,14 @@
+# Python lint settings for backend/ and ai-model/.
+line-length = 120
+target-version = "py311"
+extend-exclude = ["*.ipynb"]
+
+[lint]
+select = ["E", "F", "I", "B"]
+
+[lint.isort]
+known-first-party = ["app", "prepare_dataset"]
+
+[lint.flake8-bugbear]
+# FastAPI's Depends() in a parameter default is the documented pattern.
+extend-immutable-calls = ["fastapi.Depends"]

@@ -75,13 +75,26 @@ def test_merges_two_sources_into_ecosort_layout(tmp_path):
             "valid": {"b": "2 0.3 0.3 0.1 0.1\n"},
         },
     )
-    second = make_source(tmp_path / "neat", ["organic", "PET Bottle"], {"test": {"a": "0 0.5 0.5 0.3 0.3\n1 0.2 0.2 0.1 0.1\n"}})
+    second = make_source(
+        tmp_path / "neat",
+        ["organic", "PET Bottle"],
+        {"test": {"a": "0 0.5 0.5 0.3 0.3\n1 0.2 0.2 0.1 0.1\n"}},
+    )
     out = tmp_path / "ecosort"
     overrides = tmp_path / "overrides.yaml"
     overrides.write_text("cardboard: paper\n")
 
     result = subprocess.run(
-        [sys.executable, str(SCRIPTS / "prepare_dataset.py"), str(first), str(second), "--out", str(out), "--overrides", str(overrides)],
+        [
+            sys.executable,
+            str(SCRIPTS / "prepare_dataset.py"),
+            str(first),
+            str(second),
+            "--out",
+            str(out),
+            "--overrides",
+            str(overrides),
+        ],
         capture_output=True,
         text=True,
     )

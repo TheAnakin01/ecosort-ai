@@ -42,3 +42,5 @@ docs/       training log
 3. **Mobile app:** follow [mobile/README.md](mobile/README.md).
 
 Datasets and model weights are not stored in this repo. They are too large for GitHub.
+
+Approved project decisions are recorded in [docs/decision-log.md](docs/decision-log.md).

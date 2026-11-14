@@ -1,0 +1,3 @@
+# For running the dataset-script tests. No Ultralytics or PyTorch needed.
+pyyaml~=6.0.3
+pytest~=9.1.1
