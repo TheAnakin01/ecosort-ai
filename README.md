@@ -10,7 +10,7 @@ The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
 |---|---|
 | Backend API (`backend/`) | Working and tested with a stand-in detector. It has not run with a real model yet. |
 | Training and prediction scripts (`ai-model/`) | Written. Not run yet: there is no dataset or trained model so far. |
-| Mobile app (`mobile/`) | Not started |
+| Mobile app (`mobile/`) | Home, Scan and Results screens work in the web version against the backend with a stand-in detector. Not yet run on a phone. |
 
 ## How the parts fit
 
@@ -24,6 +24,7 @@ The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
 ```
 ai-model/   dataset config, training and prediction scripts
 backend/    FastAPI server that serves the model
+mobile/     React Native + Expo phone app
 docs/       training log
 ```
 
@@ -31,5 +32,6 @@ docs/       training log
 
 1. **Dataset and model:** follow [ai-model/README.md](ai-model/README.md).
 2. **Backend:** follow [backend/README.md](backend/README.md).
+3. **Mobile app:** follow [mobile/README.md](mobile/README.md).
 
 Datasets and model weights are not stored in this repo. They are too large for GitHub.
