@@ -1,0 +1,35 @@
+# EcoSort AI
+
+An app that finds several waste items in one photo, labels each one as paper, plastic, metal or organic, and tells you which bin it goes in. Built for Srujan 2026.
+
+The full plan is in [Smart waste ai.md](Smart%20waste%20ai.md).
+
+## Status
+
+| Part | State |
+|---|---|
+| Backend API (`backend/`) | Working and tested with a stand-in detector. It has not run with a real model yet. |
+| Training and prediction scripts (`ai-model/`) | Written. Not run yet: there is no dataset or trained model so far. |
+| Mobile app (`mobile/`) | Not started |
+
+## How the parts fit
+
+1. The phone app sends a photo to the backend.
+2. The backend runs the trained YOLO model on it.
+3. The backend replies with every item found: category, confidence and box position, plus counts per category.
+4. The app draws the boxes and shows the sorting tips.
+
+## Folders
+
+```
+ai-model/   dataset config, training and prediction scripts
+backend/    FastAPI server that serves the model
+docs/       training log
+```
+
+## Start here
+
+1. **Dataset and model:** follow [ai-model/README.md](ai-model/README.md).
+2. **Backend:** follow [backend/README.md](backend/README.md).
+
+Datasets and model weights are not stored in this repo. They are too large for GitHub.
