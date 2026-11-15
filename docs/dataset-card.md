@@ -8,26 +8,71 @@ The numbers below come from that build's `dataset_report.json`. Where something 
 ## Sources
 
 | Dataset | Link | Version | License | Downloaded on |
-|---|---|---|---|---|
-| Trash Detection (`trash-detection`) | https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8 | Newest at download; number not recorded | **Not yet checked** | 2026-11-15 |
-| TrashNet: annotated images of trash (`trashnet`) | https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | Newest at download; number not recorded | CC BY 4.0 (per its Roboflow page, read 2026-11-14) | 2026-11-15 |
-| Neat Now (`neat-now`) | https://universe.roboflow.com/fyp-gojku/neat-now | Newest at download; number not recorded | **Not yet checked** | 2026-11-15 |
+|---------|------|---------|---------|---------------|
+| Trash Detection (`trash-detection`) | https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8 | Newest at download; **not recorded** | UNKNOWN — not checked | 2026-11-15 |
+| TrashNet: annotated images of trash (`trashnet`) | https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | Newest at download; **not recorded** | CC BY 4.0 (per its Roboflow page, read 2026-11-14) | 2026-11-15 |
+| Neat Now (`neat-now`) | https://universe.roboflow.com/fyp-gojku/neat-now | Newest at download; **not recorded** | UNKNOWN — not checked | 2026-11-15 |
 
 ### Added for the next build (2026-11-15)
 
 Not in the dataset above. The next build and training run will include it.
 
 | Dataset | Link | Version | License | Downloaded on |
-|---|---|---|---|---|
-| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp | 5 | **Not yet checked** for this copy. The original it copies, [material-identification/garbage-classification-3](https://universe.roboflow.com/material-identification/garbage-classification-3), is CC BY 4.0 with classes biodegradable, cardboard, glass, metal, paper, plastic | 2026-11-15 |
+|---------|------|---------|---------|---------------|
+| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp | 5 | UNKNOWN for this copy — not checked. The original it copies, [material-identification/garbage-classification-3](https://universe.roboflow.com/material-identification/garbage-classification-3), is CC BY 4.0 with classes biodegradable, cardboard, glass, metal, paper, plastic | 2026-11-15 |
 
-The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no downloadable version on Roboflow, so this copy was used instead. Expected mapping, to be confirmed by the dry run: BIODEGRADABLE to organic (approved by the product owner), CARDBOARD and PAPER to paper, PLASTIC to plastic, METAL to metal, GLASS and CLOTH excluded. Its photos may overlap with TrashNet.
+The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no downloadable version on Roboflow, so this copy was used instead.
 
-Its BIODEGRADABLE boxes are fruit and vegetables (sample checked 2026-11-15), many in crowded piles. The build uses `--max-share organic=0.3` so they do not swamp the other classes; see `decision-log.md`.
+### Version pinning (reproducibility)
 
-"Waste Classification by YOLOv8" was considered and left out: it has no bounding boxes. See `decision-log.md`.
+Dataset versions are configured centrally in `ai-model/configs/datasets.yaml`.
+Each of the four datasets may pin an explicit version:
 
-To do: open the two unchecked dataset pages and record their licenses here before the model is used in a submission. The class names suggest Trash Detection is built on the TACO litter dataset; confirm that on its page too.
+- If `version` is set, `scripts/download_datasets.py` downloads exactly that
+  version. If the version is unavailable on Roboflow, the download fails with a
+  clear error — it never silently substitutes another version.
+- If `version` is null or unset (current state for all four datasets), the
+  script downloads the newest downloadable version and prints a warning that
+  the build is not reproducible.
+
+After a download, the script writes `downloads/download_manifest.json`
+recording, for each dataset: workspace, project, requested version, selected
+version, dataset identifier, and download timestamp. `scripts/prepare_dataset.py`
+reads this manifest and records `source_versions` in
+`datasets/ecosort/dataset_report.json`, so every build record shows exactly
+which dataset versions were used.
+
+**Current state:** All four dataset versions are unpinned (`version: null`) in
+`configs/datasets.yaml`. None of the version numbers have been confirmed against
+live Roboflow projects (no Roboflow API credentials are available in this
+environment, and Roboflow Universe pages are not accessible). Do not guess
+version numbers. Before a submission run:
+
+1. Run the notebook once and read each dataset's actual version from the cell
+   output and from `downloads/download_manifest.json`.
+2. Enter those version numbers in `configs/datasets.yaml`.
+3. Record them in the version table below.
+
+Never assume a dataset is commercially usable without evidence. Licenses marked
+UNKNOWN must be checked on each dataset's Roboflow page before the model is
+used in a submission.
+
+### Pre-submission license check
+
+Before using the trained model in any submission, confirm the license of every
+dataset. The following licenses are **UNKNOWN** and must be verified:
+
+- Trash Detection (`amongus-o6ilp/trash-detection-1fjjc-ipij8`)
+- Neat Now (`fyp-gojku/neat-now`)
+- GARBAGE CLASSIFICATION 3 copy
+  (`objectdetection-z2zn1/garbage-classification-3-bjcgp`)
+
+TrashNet (`polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection`)
+is CC BY 4.0 (confirmed on its Roboflow page, 2026-11-14). The original that
+GARBAGE CLASSIFICATION 3 copies
+(`material-identification/garbage-classification-3`) is CC BY 4.0, but **a
+copied dataset does not automatically inherit the original's license** — the
+copy's own license must be checked separately.
 
 ## Size
 
