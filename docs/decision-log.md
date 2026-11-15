@@ -56,8 +56,9 @@ Approved project decisions, newest last. These rank above the documentation pack
 
 ## 2026-11-15 — Add GARBAGE CLASSIFICATION 3 as a fourth source
 
-- **Decision:** Add [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0) (ginas-workspace, object detection) to the merged dataset, downloaded as `garbage-cls-3`. Its BIODEGRADABLE class maps to `organic`.
+- **Decision:** Add [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp) (objectdetection-z2zn1 copy, version 5, object detection) to the merged dataset, downloaded as `garbage-cls-3`. Its BIODEGRADABLE class maps to `organic`.
 - **Reason:** More variety in photos and more labelled boxes per image, to improve localisation. Plastic and metal were the weakest classes in `ecosort-baseline-2`.
+- **Changed the same day:** the ginas-workspace copy picked first has no downloadable version, so the objectdetection-z2zn1 copy is used. Both copy material-identification/garbage-classification-3.
 - **Alternatives considered:** Another copy of a dataset with the same name (Roboflow Universe has more than 20); dropping BIODEGRADABLE; reviewing sample photos before mapping it.
 - **Affected:** `ai-model/notebooks/train_ecosort.ipynb`, `ai-model/README.md`, `docs/dataset-card.md`.
 - **Known risk:** BIODEGRADABLE may contain paper or leaves as well as food. If the dry run or a sample review shows that, change it with one line in `configs/class_overrides.yaml`.
