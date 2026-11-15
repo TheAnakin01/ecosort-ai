@@ -1,6 +1,5 @@
 """Tests for download_datasets.py that need no network."""
 
-import json
 import os
 import subprocess
 import sys
