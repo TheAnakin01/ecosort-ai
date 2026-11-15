@@ -19,16 +19,11 @@ from pathlib import Path
 
 import torch
 import ultralytics
-import yaml
 from ultralytics import YOLO
 
+from dataset_paths import absolute_data_yaml, dataset_dir
+
 AI_MODEL_DIR = Path(__file__).resolve().parent.parent
-
-
-def dataset_dir(data_yaml: Path) -> Path:
-    """The dataset folder a data.yaml points at."""
-    path = Path(yaml.safe_load(data_yaml.read_text())["path"])
-    return path if path.is_absolute() else (data_yaml.parent / path).resolve()
 
 
 def require_validated(dataset: Path) -> dict:
@@ -106,13 +101,14 @@ def main() -> None:
     args = parser.parse_args()
 
     dataset = dataset_dir(args.data)
+    data = str(absolute_data_yaml(args.data))
     validation = None if args.skip_validation_check else require_validated(dataset)
 
     # Transfer learning: start from weights that already know general shapes
     # and edges, then teach them our four waste classes.
     model = YOLO(args.model)
     model.train(
-        data=str(args.data),
+        data=data,
         epochs=args.epochs,
         imgsz=args.imgsz,
         batch=args.batch,
@@ -125,7 +121,7 @@ def main() -> None:
 
     # Score the best checkpoint on the validation split.
     best = YOLO(str(run_dir / "weights" / "best.pt"))
-    metrics = best.val(data=str(args.data), split="val", imgsz=args.imgsz, plots=False, verbose=False)
+    metrics = best.val(data=data, split="val", imgsz=args.imgsz, plots=False, verbose=False)
     overall, rows = overall_metrics(metrics), per_class_rows(metrics)
     print_metrics("validation", overall, rows)
 
