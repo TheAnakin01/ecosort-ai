@@ -1,0 +1,6 @@
+# Runtime for the ONNX model: no PyTorch, no Ultralytics. Used by the
+# Docker image and for running the ONNX detector tests.
+-r requirements-base.txt
+onnxruntime~=1.32.0
+opencv-python-headless~=5.0.0
+numpy~=2.5.4

@@ -1,0 +1,16 @@
+{
+  "source_weights": "best.pt",
+  "source_sha256": "f2e7a74a3b350600c7c7355c56e885b83ddbb149a0a693481ba23baf5bbfef20",
+  "onnx_file": "best.onnx",
+  "onnx_size_bytes": 11696862,
+  "onnx_sha256": "0e38fc74c6f5f6d1cc1fb67314191f4a4124fba4874b4310c24375177e7dc687",
+  "imgsz": 640,
+  "opset": 17,
+  "class_names": [
+    "paper",
+    "plastic",
+    "metal",
+    "organic"
+  ],
+  "ultralytics_version": "8.4.213"
+}

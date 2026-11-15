@@ -100,10 +100,19 @@ class YoloDetector:
         return detections
 
 
-def load_detector(settings: Settings) -> YoloDetector | None:
-    """Load the model, or return None and log why it could not be loaded."""
+def load_detector(settings: Settings):
+    """Load the model, or return None and log why it could not be loaded.
+
+    A .onnx MODEL_PATH runs on onnxruntime (no PyTorch, small memory);
+    anything else is loaded as Ultralytics .pt weights.
+    """
     try:
-        detector = YoloDetector(settings)
+        if settings.model_path.suffix.lower() == ".onnx":
+            from .onnx_detector import OnnxDetector
+
+            detector = OnnxDetector(settings)
+        else:
+            detector = YoloDetector(settings)
     except ModelNotAvailable as exc:
         logger.warning("Model not loaded: %s", exc)
         return None

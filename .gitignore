@@ -33,3 +33,8 @@ node_modules/
 
 # Source datasets downloaded by the notebook
 ai-model/downloads/
+
+# The deployable ONNX model and its record are small enough to keep in Git.
+!ai-model/weights/
+!ai-model/weights/best.onnx
+!ai-model/weights/best.onnx.json
