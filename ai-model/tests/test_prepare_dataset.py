@@ -50,6 +50,24 @@ def test_map_class_by_keyword(name, expected):
     assert map_class(name, {}) == expected
 
 
+# Class names shown for GARBAGE CLASSIFICATION 3 (ginas-workspace), added
+# 2026-11-15. BIODEGRADABLE -> organic was approved by the product owner.
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("BIODEGRADABLE", "organic"),
+        ("CARDBOARD", "paper"),
+        ("PAPER", "paper"),
+        ("PLASTIC", "plastic"),
+        ("METAL", "metal"),
+        ("GLASS", None),
+        ("CLOTH", None),
+    ],
+)
+def test_garbage_classification_3_classes(name, expected):
+    assert map_class(name, {"cardboard": "paper"}) == expected
+
+
 def test_overrides_win_over_keywords():
     assert map_class("Bottle", {"bottle": "plastic"}) == "plastic"
     assert map_class("Paper", {"paper": "drop"}) is None

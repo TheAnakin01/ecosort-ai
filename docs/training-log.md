@@ -34,6 +34,9 @@ A good overall score can hide a weak class.
 
 ## Rules
 
+- Record the **overtraining check** verdict (from `train.py` or `overfit_check.py`) for every run.
+- Record the **false-detection check** (`check_hallucinations.py`, validation split, app thresholds): the share of boxes on nothing, per class. A run with a better mAP but more boxes on nothing is not automatically better for the app.
+
 - Scores from `train.py` are **validation** scores. Use them to compare runs and choose settings.
 - The **test** score comes from `python scripts/evaluate.py --split test`. Run it once, on the final model, after the confidence threshold is chosen.
 - Never report a training-split score as the model's performance.
