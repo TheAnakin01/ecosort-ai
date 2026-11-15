@@ -87,3 +87,13 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Alternatives considered:** Train as it is; drop BIODEGRADABLE (and every photo that contains it).
 - **Affected:** `ai-model/scripts/prepare_dataset.py`, the notebook, `ai-model/README.md`.
 - **Migration needed:** No.
+
+## 2026-11-15 — Train on Kaggle when Colab's GPU is unavailable
+
+- **Decision:** Add a Kaggle notebook (`ai-model/notebooks/train_ecosort_kaggle.ipynb`) that runs the same build and training without anyone watching.
+- **Reason:** Run 2 hit Colab's free GPU limit after 4 epochs (`ecosort-baseline-3`). At about 17 minutes per epoch a 30-epoch run takes 8 to 9 hours, longer than Colab's free tier reliably allows. Kaggle has a weekly GPU quota and longer sessions.
+- **How:** Same scripts and settings: four sources, `--resplit`, `--max-share organic=0.3`, 30 epochs with early stopping, then the overtraining and false-detection checks. `scripts/download_datasets.py` reads the Roboflow key from a Kaggle secret. Every step runs as its own process (no Pillow clash), and a failed step sends an ntfy notification.
+- **Not resumed:** `ecosort-baseline-3` is not continued. Its checkpoint stores Colab's paths, and a fresh run keeps the comparison with run 1 clean.
+- **Verified:** The whole notebook ran end to end in a simulated Kaggle setup (stand-in secrets and GPU check, synthetic datasets, 2 epochs on CPU). Not verified: an actual Kaggle session.
+- **Affected:** `ai-model/notebooks/train_ecosort_kaggle.ipynb`, `ai-model/scripts/download_datasets.py`, `ai-model/README.md`.
+- **Migration needed:** No.

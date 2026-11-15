@@ -6,6 +6,10 @@ Trains a YOLO nano detector on four classes: paper, plastic, metal, organic.
 
 [Open the notebook in Colab](https://colab.research.google.com/github/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort.ipynb) and run it top to bottom. It downloads the four Roboflow datasets, merges them, trains, and gives you `best.pt`.
 
+## On Kaggle, when Colab's GPU limit runs out
+
+[`notebooks/train_ecosort_kaggle.ipynb`](notebooks/train_ecosort_kaggle.ipynb) does the same build and training, but runs unattended with **Save & Run All (Commit)**: close the browser and come back to `best.pt` in the version's Output tab. It needs Kaggle's GPU T4 x2 and Internet settings, and a `ROBOFLOW_API_KEY` secret (plus an optional `NTFY_TOPIC` for phone notifications). The setup steps are at the top of the notebook. Each Kaggle account has its own weekly GPU hours, so a teammate can run it on theirs.
+
 The only thing you supply is your Roboflow API key (Roboflow → Settings → API Keys). The notebook asks for it when it runs and does not save it.
 
 Datasets the team picked:
