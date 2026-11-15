@@ -17,7 +17,11 @@ Add --dry-run first to see how every source class will be mapped without
 copying anything. Fix wrong or missing mappings in configs/class_overrides.yaml.
 
 Identical image files are always removed, because public datasets often
-contain each other's photos. Add --resplit to also ignore the sources' own
+contain each other's photos. Add --max-share organic=0.3 to stop one class from crowding out the others:
+photos that contain only that class are left out, the most crowded first,
+until the class is at most that share of all boxes.
+
+Add --resplit to also ignore the sources' own
 train/valid/test folders and make a fresh split that keeps copies of a photo,
 and pictures that look the same, in one split. Use it when merging datasets
 from different authors.
@@ -275,6 +279,60 @@ def remove_duplicates(items: list[Item], stats: dict) -> list[Item]:
     return list(kept.values())
 
 
+def parse_max_share(values: list[str]) -> dict[str, float]:
+    """Turn ["organic=0.3"] into {"organic": 0.3}."""
+    limits = {}
+    for value in values:
+        name, _, share = value.partition("=")
+        name = name.strip().lower()
+        if name not in OUR_CLASSES:
+            raise SystemExit(f'--max-share: "{name}" is not one of {OUR_CLASSES}')
+        try:
+            limits[name] = float(share)
+        except ValueError:
+            raise SystemExit(f'--max-share: "{value}" should look like organic=0.3') from None
+        if not 0 < limits[name] < 1:
+            raise SystemExit(f"--max-share: the share for {name} must be between 0 and 1")
+    return limits
+
+
+def cap_class_share(items: list[Item], name: str, max_share: float, stats: dict) -> list[Item]:
+    """Leave out photos that contain only `name` until it is at most max_share of all boxes.
+
+    The most crowded photos go first: a pile of 300 tomatoes teaches little that
+    a photo of six does not, and it is far from what the app will be shown.
+    Photos that also show another class are always kept, so no box of another
+    class is lost.
+    """
+    class_id = OUR_CLASSES.index(name)
+
+    def classes_in(item: Item) -> set[int]:
+        return {int(line.split()[0]) for line in item.lines}
+
+    total = sum(len(item.lines) for item in items)
+    count = sum(1 for item in items for line in item.lines if int(line.split()[0]) == class_id)
+    candidates = sorted(
+        (item for item in items if item.lines and classes_in(item) == {class_id}),
+        key=lambda item: (-len(item.lines), item.name),
+    )
+    dropped: set[str] = set()
+    for item in candidates:
+        if count <= max_share * total:
+            break
+        dropped.add(item.name)
+        count -= len(item.lines)
+        total -= len(item.lines)
+    removed_boxes = sum(len(item.lines) for item in items if item.name in dropped)
+    stats["capped"][name] = {
+        "max_share": max_share,
+        "images_left_out": len(dropped),
+        "boxes_left_out": removed_boxes,
+        "share_after": round(count / total, 4) if total else 0.0,
+        "limit_reached": count <= max_share * total,
+    }
+    return [item for item in items if item.name not in dropped]
+
+
 def choose_splits(items: list[Item], resplit: bool) -> list[str]:
     """Decide the split of every item. Returns one split name per item, in order."""
     if not resplit:
@@ -342,6 +400,15 @@ def print_report(stats: dict) -> None:
         note = "   <-- too few, add more photos of this class" if count / total < 0.1 else ""
         print(f"  {name:8s} {count:6d}  ({count / total:.0%}){note}")
 
+    for name, cap in stats["capped"].items():
+        print(
+            f"\n--max-share {name}={cap['max_share']}: left out {cap['images_left_out']} photos that showed only "
+            f"{name} ({cap['boxes_left_out']} boxes), most crowded first. "
+            f"{name} is now {cap['share_after']:.0%} of boxes."
+        )
+        if not cap["limit_reached"]:
+            print(f"  Could not get {name} that low: every remaining {name} photo also shows another class.")
+
     print("\nImages per split:", {split: stats["images"][split] for split in ("train", "val", "test")})
     if stats["duplicate_images"]:
         print(f"Identical image files removed: {stats['duplicate_images']}")
@@ -370,12 +437,21 @@ def main() -> None:
     parser.add_argument("--overrides", type=Path, default=AI_MODEL_DIR / "configs" / "class_overrides.yaml")
     parser.add_argument("--dry-run", action="store_true", help="show the mapping and counts, copy nothing")
     parser.add_argument(
+        "--max-share",
+        action="append",
+        default=[],
+        metavar="CLASS=SHARE",
+        help="keep CLASS to at most SHARE of all boxes (for example organic=0.3) by leaving out photos "
+        "that show only that class, most crowded first",
+    )
+    parser.add_argument(
         "--resplit",
         action="store_true",
         help="ignore the sources' own train/valid/test folders and make a fresh 70/20/10 split that "
         "keeps copies of a photo, and pictures that look the same, together",
     )
     args = parser.parse_args()
+    max_share = parse_max_share(args.max_share)
 
     overrides = {}
     if args.overrides.exists():
@@ -396,6 +472,7 @@ def main() -> None:
         "repeated_boxes": 0,
         "duplicate_images": 0,
         "duplicates_with_different_labels": 0,
+        "capped": {},
     }
     items: list[Item] = []
     for source in args.sources:
@@ -405,6 +482,8 @@ def main() -> None:
 
     print(f"Checking {len(items)} images for duplicates. This can take a few minutes.", flush=True)
     items = remove_duplicates(items, stats)
+    for name, share in max_share.items():
+        items = cap_class_share(items, name, share, stats)
     splits = choose_splits(items, args.resplit)
 
     for item, split in zip(items, splits, strict=True):
@@ -428,6 +507,7 @@ def main() -> None:
         "class_mapping": stats["mappings"],
         "overrides": overrides,
         "resplit": args.resplit,
+        "max_share": stats["capped"],
         "images_per_split": {split: stats["images"][split] for split in ("train", "val", "test")},
         "boxes_per_class": {name: stats["boxes"][name] for name in OUR_CLASSES},
         "boxes_per_class_by_split": {
