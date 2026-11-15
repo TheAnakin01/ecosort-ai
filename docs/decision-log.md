@@ -70,3 +70,11 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Alternatives considered:** Drawing boxes on it with the current model (pseudo-labelling) and reviewing a sample; finding a version of it with boxes.
 - **Affected:** Nothing.
 - **Migration needed:** No.
+
+## 2026-11-15 — Guard against overtraining and check for false detections
+
+- **Decision:** Every training run is checked for overtraining and for false detections ("hallucinations") before it is used.
+- **How:** `train.py` stops after 10 epochs without improvement (was 15) and runs `overfit_check.py` at the end. `check_hallucinations.py` runs the model on the validation split with the backend's thresholds (confidence 0.35, overlap 0.7) and counts boxes where there is no labelled item.
+- **Reason:** Asked for by the product owner. mAP is measured at a very low confidence threshold, so it does not show what the app will actually display.
+- **Affected:** `ai-model/scripts/train.py`, `ai-model/scripts/overfit_check.py`, `ai-model/scripts/check_hallucinations.py`, the notebook, `docs/training-log.md`.
+- **Migration needed:** No.

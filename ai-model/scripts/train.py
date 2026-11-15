@@ -22,6 +22,9 @@ import ultralytics
 from ultralytics import YOLO
 
 from dataset_paths import absolute_data_yaml, dataset_dir
+from overfit_check import check as check_overtraining
+from overfit_check import print_report as print_overtraining_report
+from overfit_check import read_results
 
 AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 
@@ -90,6 +93,12 @@ def main() -> None:
     parser.add_argument("--epochs", type=int, default=50)
     parser.add_argument("--imgsz", type=int, default=640)
     parser.add_argument("--batch", type=int, default=16)
+    parser.add_argument(
+        "--patience",
+        type=int,
+        default=10,
+        help="stop when validation mAP has not improved for this many epochs, so the model does not overtrain",
+    )
     parser.add_argument("--seed", type=int, default=0, help="random seed, recorded so a run can be repeated")
     parser.add_argument("--name", default="ecosort-baseline", help="name of this training run")
     parser.add_argument("--project", default=str(AI_MODEL_DIR / "runs"), help="folder to save runs in")
@@ -115,7 +124,7 @@ def main() -> None:
         seed=args.seed,
         name=args.name,
         project=args.project,
-        patience=15,  # stop early if validation stops improving
+        patience=args.patience,  # stop early once validation stops improving
     )
     run_dir = Path(model.trainer.save_dir)
 
@@ -124,6 +133,8 @@ def main() -> None:
     metrics = best.val(data=data, split="val", imgsz=args.imgsz, plots=False, verbose=False)
     overall, rows = overall_metrics(metrics), per_class_rows(metrics)
     print_metrics("validation", overall, rows)
+    overtraining = check_overtraining(read_results(run_dir / "results.csv"))
+    print_overtraining_report(overtraining)
 
     # Everything needed to repeat or describe this run.
     build_record = dataset / "dataset_report.json"
@@ -133,6 +144,7 @@ def main() -> None:
         "run_name": run_dir.name,
         "starting_weights": args.model,
         "epochs_requested": args.epochs,
+        "patience": args.patience,
         "image_size": args.imgsz,
         "batch_size": args.batch,
         "seed": args.seed,
@@ -143,6 +155,7 @@ def main() -> None:
         "dataset_built": json.loads(build_record.read_text()).get("created") if build_record.exists() else None,
         "dataset_validated": validation is not None,
         "validation_metrics": {"overall": overall, "per_class": rows},
+        "overtraining_check": overtraining,
     }
     (run_dir / "run_info.json").write_text(json.dumps(run_info, indent=2) + "\n")
 
@@ -150,6 +163,7 @@ def main() -> None:
     print(f"Run record: {run_dir / 'run_info.json'}")
     print("Copy the numbers above into docs/training-log.md.")
     print("These are validation scores. Use scripts/evaluate.py --split test once, at the very end.")
+    print("Next: python scripts/check_hallucinations.py --weights " + str(run_dir / "weights" / "best.pt"))
 
 
 if __name__ == "__main__":

@@ -28,9 +28,12 @@ Run them in this order, from the `ai-model/` folder. The notebook does the same 
 | 1 | `python scripts/prepare_dataset.py <sources> --resplit --dry-run` | Shows how each source class will be mapped. Copies nothing. |
 | 2 | `python scripts/prepare_dataset.py <sources> --resplit` | Builds `datasets/ecosort/` and writes `dataset_report.json`. |
 | 3 | `python scripts/validate_dataset.py` | Checks the dataset. Training refuses to start until this passes. |
-| 4 | `python scripts/train.py --epochs 50` | Fine-tunes YOLO nano. Prints validation scores per class. |
-| 5 | `python scripts/predict.py photo.jpg` | Runs the model on one photo and saves a copy with boxes drawn. |
-| 6 | `python scripts/evaluate.py --split test` | The final score. Run once, at the very end. |
+| 4 | `python scripts/train.py --epochs 50` | Fine-tunes YOLO nano. Stops early after 10 epochs without improvement (`--patience`). Prints validation scores per class and an overtraining check. |
+| 5 | `python scripts/check_hallucinations.py --weights <run>/weights/best.pt` | Runs the model like the app does (confidence 0.35) and counts boxes on nothing, wrong classes, duplicates and items with no box. Saves the worst photos. |
+| 6 | `python scripts/predict.py photo.jpg` | Runs the model on one photo and saves a copy with boxes drawn. |
+| 7 | `python scripts/evaluate.py --split test` | The final score. Run once, at the very end. |
+
+`python scripts/overfit_check.py <run folder>` runs the overtraining check on any finished run, including old ones.
 
 `<sources>` is the list of downloaded dataset folders, for example `downloads/trash-detection downloads/trashnet downloads/neat-now downloads/garbage-cls-3`.
 
