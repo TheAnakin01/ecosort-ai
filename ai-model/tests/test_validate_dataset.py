@@ -230,3 +230,67 @@ def test_resplit_fixes_a_source_whose_own_splits_leak(tmp_path):
     report = json.loads((fixed / "validation_report.json").read_text())
     assert sum(report["stats"]["images_per_split"].values()) == 90
     assert all(count > 0 for count in report["stats"]["images_per_split"].values())
+
+
+def test_overlapping_public_datasets_come_out_clean_with_resplit(tmp_path):
+    """Three sources that contain each other's photos, as real Roboflow datasets do.
+
+    Every original picture appears four ways:
+      - in source "a" (train)
+      - as the same file under another name in source "b" (valid)
+      - resized and re-saved in source "c" (test)
+      - as an augmented copy with the same original name in source "a" (valid)
+    """
+    labels = "".join(f"{i} 0.5 0.5 0.2 0.2\n" for i in range(4))
+
+    def put(source: str, split: str, name: str, image_bytes: bytes | None = None, seed: int = 0) -> Path:
+        root = tmp_path / source
+        (root / split / "images").mkdir(parents=True, exist_ok=True)
+        (root / split / "labels").mkdir(parents=True, exist_ok=True)
+        (root / "data.yaml").write_text("names: [paper, plastic, metal, organic]\n")
+        path = root / split / "images" / f"{name}.png"
+        if image_bytes is None:
+            make_image(path, seed)
+        else:
+            path.write_bytes(image_bytes)
+        (root / split / "labels" / f"{name}.txt").write_text(labels)
+        return path
+
+    pictures = 40
+    for n in range(pictures):
+        original = put("a", "train", f"photo{n}_jpg.rf.aaa", seed=n)
+        put("b", "valid", f"renamed_{n}", image_bytes=original.read_bytes())
+        with Image.open(original) as image:
+            resized = image.resize((128, 96))
+        target = put("c", "test", f"other_{n}", seed=n)
+        resized.save(target)
+        put("a", "valid", f"photo{n}_jpg.rf.bbb", seed=1000 + n)
+
+    sources = [str(tmp_path / name) for name in ("a", "b", "c")]
+    prepare = [sys.executable, str(SCRIPTS / "prepare_dataset.py"), *sources]
+    check = [sys.executable, str(SCRIPTS / "validate_dataset.py")]
+
+    # Keeping the sources' own splits: the identical files are removed, but
+    # the look-alikes and the augmented copies still straddle splits.
+    kept = tmp_path / "out_kept"
+    assert subprocess.run([*prepare, "--out", str(kept)], capture_output=True).returncode == 0
+    result = subprocess.run([*check, str(kept)], capture_output=True, text=True)
+    assert result.returncode == 1
+    assert "Same image file in more than one split" not in result.stdout
+    assert f"Copies of one source photo in more than one split ({pictures})" in result.stdout
+    assert "Pictures that look identical in more than one split (" in result.stdout
+
+    # A fresh grouped split: nothing straddles splits any more.
+    fixed = tmp_path / "out_fixed"
+    built = subprocess.run([*prepare, "--out", str(fixed), "--resplit"], capture_output=True, text=True)
+    assert built.returncode == 0, built.stderr
+    assert f"Identical image files removed: {pictures}" in built.stdout
+    result = subprocess.run([*check, str(fixed)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stdout
+    report = json.loads((fixed / "validation_report.json").read_text())
+    assert report["errors"] == {}
+    assert "Pictures that look identical in more than one split" not in report["warnings"]
+    assert "Same image file more than once in a split" not in report["warnings"]
+    # 3 files per picture survive (the renamed identical copy is gone), in all three splits.
+    assert sum(report["stats"]["images_per_split"].values()) == pictures * 3
+    assert all(count > 0 for count in report["stats"]["images_per_split"].values())

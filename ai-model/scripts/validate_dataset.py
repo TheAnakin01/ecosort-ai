@@ -27,7 +27,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from prepare_dataset import IMAGE_SUFFIXES, MIN_BOX_SIDE, OUR_CLASSES, source_key
+from prepare_dataset import IMAGE_SUFFIXES, MIN_BOX_SIDE, OUR_CLASSES, source_key, visual_hash
 
 AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 SPLITS = ["train", "val", "test"]
@@ -70,18 +70,6 @@ def check_label_line(line: str) -> str | None:
     if min(edges) < -EDGE_TOLERANCE or max(edges) > 1 + EDGE_TOLERANCE:
         return "box reaches outside the image"
     return None
-
-
-def visual_hash(path: Path) -> str:
-    """A fingerprint that stays the same when a picture is re-saved or resized."""
-    with Image.open(path) as image:
-        small = image.convert("L").resize((9, 8), Image.Resampling.LANCZOS)
-        pixels = small.tobytes()  # one byte per pixel, row by row
-    bits = 0
-    for row in range(8):
-        for col in range(8):
-            bits = (bits << 1) | (pixels[row * 9 + col] > pixels[row * 9 + col + 1])
-    return f"{bits:016x}"
 
 
 def is_readable(path: Path) -> bool:
@@ -129,7 +117,9 @@ def validate(dataset: Path) -> tuple[Findings, dict]:
                 continue
 
             by_bytes[hashlib.md5(image.read_bytes()).hexdigest()][split].append(image.name)
-            by_look[visual_hash(image)][split].append(image.name)
+            look = visual_hash(image)
+            if look:
+                by_look[look][split].append(image.name)
             by_source[source_key(image.name)][split].append(image.name)
 
             label = label_dir / (image.stem + ".txt")

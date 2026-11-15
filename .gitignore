@@ -30,3 +30,6 @@ ai-model/runs/
 # Node / Expo
 node_modules/
 .expo/
+
+# Source datasets downloaded by the notebook
+ai-model/downloads/
