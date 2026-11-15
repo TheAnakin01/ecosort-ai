@@ -10,9 +10,11 @@ import pytest
 import yaml
 
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
-sys.path.insert(0, str(SCRIPTS))
+sys.path.insert(0, str(SCRIPTS))  # noqa: E402
 
+import download_datasets  # noqa: E402
 from download_datasets import (  # noqa: E402
+    CONFIG_PATH,
     DATASETS,
     FALLBACK_DATASETS,
     check_key,
@@ -105,8 +107,6 @@ def test_fallback_datasets_match_dataets_alias():
 
 def test_load_dataset_config_reads_yaml_config(tmp_path, monkeypatch):
     """load_dataset_config reads from configs/datasets.yaml."""
-    import download_datasets as dd
-
     config_dir = tmp_path / "configs"
     config_dir.mkdir()
     (config_dir / "datasets.yaml").write_text(
@@ -130,12 +130,12 @@ def test_load_dataset_config_reads_yaml_config(tmp_path, monkeypatch):
         )
     )
 
-    original = dd.CONFIG_PATH
-    dd.CONFIG_PATH = config_dir / "datasets.yaml"
+    original = download_datasets.CONFIG_PATH
+    download_datasets.CONFIG_PATH = config_dir / "datasets.yaml"
     try:
-        config = dd.load_dataset_config()
+        config = load_dataset_config()
     finally:
-        dd.CONFIG_PATH = original
+        download_datasets.CONFIG_PATH = original
 
     assert len(config) == 2
     assert config[0]["folder"] == "trash-detection"
@@ -146,16 +146,14 @@ def test_load_dataset_config_reads_yaml_config(tmp_path, monkeypatch):
 
 def test_load_dataset_config_fails_on_empty_config(tmp_path, monkeypatch):
     """An empty datasets list raises SystemExit."""
-    import download_datasets as dd
-
     config_dir = tmp_path / "configs"
     config_dir.mkdir()
     (config_dir / "datasets.yaml").write_text(yaml.safe_dump({"datasets": []}))
 
-    original = dd.CONFIG_PATH
-    dd.CONFIG_PATH = config_dir / "datasets.yaml"
+    original = download_datasets.CONFIG_PATH
+    download_datasets.CONFIG_PATH = config_dir / "datasets.yaml"
     try:
         with pytest.raises(SystemExit, match="no 'datasets' entries"):
-            dd.load_dataset_config()
+            load_dataset_config()
     finally:
-        dd.CONFIG_PATH = original
+        download_datasets.CONFIG_PATH = original
