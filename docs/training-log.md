@@ -44,3 +44,17 @@ A good overall score can hide a weak class.
 ## Pipeline check with fake data (not a model result)
 
 On 2026-11-14 the scripts were run end to end on a synthetic dataset of coloured rectangles (`ai-model/tests/make_synthetic_dataset.py`), on a CPU, to prove that they work. That model scored about 0.99 mAP@50 because telling four solid colours apart is trivial. The number says nothing about waste detection and must not be quoted as a result.
+
+## Kaggle runs
+
+No Kaggle training run has been executed yet. This section is intentionally empty: metrics may only be recorded here from a real Kaggle run, copied from the run's `run_info.json` or from `train.py`'s printed validation table. Do not fabricate training or validation results.
+
+To record a Kaggle run:
+
+| Date | Run name | Starting weights | Epochs | Image size | Seed | Best epoch | Precision | Recall | mAP@50 | mAP@50-95 | Overtraining verdict | Boxes on nothing |
+|------|----------|------------------|--------|------------|------|------------|-----------|--------|--------|-----------|----------------------|------------------|
+
+- Run name comes from `run_info.json["run_name"]` (e.g. `ecosort-baseline`).
+- Best epoch, overtraining verdict and `best_map50_95` come from `overfit_check.json`.
+- Boxes on nothing (`share_on_nothing`) comes from `hallucination_check_val/report.json`.
+- Per-class precision/recall/AP come from `run_info.json["validation_metrics"]`.
