@@ -92,7 +92,8 @@ def make_source(root: Path, names: list[str], splits: dict[str, dict[str, str]])
         (root / split / "images").mkdir(parents=True)
         (root / split / "labels").mkdir(parents=True)
         for stem, label in files.items():
-            (root / split / "images" / f"{stem}.jpg").write_bytes(b"fake image")
+            # Different bytes per file: identical files are treated as duplicates.
+            (root / split / "images" / f"{stem}.jpg").write_bytes(f"fake image {root.name}/{split}/{stem}".encode())
             (root / split / "labels" / f"{stem}.txt").write_text(label)
     return root
 
@@ -188,3 +189,64 @@ def test_dry_run_copies_nothing(tmp_path):
     assert result.returncode == 0, result.stderr
     assert not out.exists()
     assert "paper" in result.stdout
+
+
+def run_prepare(*args: str) -> subprocess.CompletedProcess:
+    return subprocess.run([sys.executable, str(SCRIPTS / "prepare_dataset.py"), *args], capture_output=True, text=True)
+
+
+def test_identical_files_are_kept_once_even_across_sources(tmp_path):
+    """Public datasets contain each other's photos under different names."""
+    first = make_source(tmp_path / "one", ["paper"], {"train": {"a": "0 0.5 0.5 0.2 0.2\n"}})
+    second = make_source(
+        tmp_path / "two",
+        ["paper", "plastic"],
+        {
+            "valid": {
+                "renamed": "0 0.5 0.5 0.2 0.2\n",
+                "relabelled": "1 0.5 0.5 0.2 0.2\n",
+                "own": "1 0.3 0.3 0.2 0.2\n",
+            }
+        },
+    )
+    original = (first / "train/images/a.jpg").read_bytes()
+    (second / "valid/images/renamed.jpg").write_bytes(original)
+    (second / "valid/images/relabelled.jpg").write_bytes(original)
+    out = tmp_path / "ecosort"
+
+    result = run_prepare(str(first), str(second), "--out", str(out))
+    assert result.returncode == 0, result.stderr
+
+    written = sorted(p.name for p in (out / "images").rglob("*.jpg"))
+    assert written == ["one__a.jpg", "two__own.jpg"]
+    report = json.loads((out / "dataset_report.json").read_text())
+    assert report["identical_images_removed"] == 2
+    assert report["identical_images_with_different_labels"] == 1
+    assert report["boxes_per_class"] == {"paper": 1, "plastic": 1, "metal": 0, "organic": 0}
+    assert "Identical image files removed: 2" in result.stdout
+
+
+def test_a_box_listed_twice_is_kept_once(tmp_path):
+    source = make_source(tmp_path / "src", ["paper"], {"train": {"a": "0 0.5 0.5 0.2 0.2\n0 0.5 0.5 0.2 0.2\n"}})
+    out = tmp_path / "ecosort"
+    assert run_prepare(str(source), "--out", str(out)).returncode == 0
+
+    label = next((out / "labels").rglob("src__a.txt"))
+    assert label.read_text() == "0 0.500000 0.500000 0.200000 0.200000\n"
+    assert json.loads((out / "dataset_report.json").read_text())["repeated_boxes_removed"] == 1
+
+
+def test_same_file_name_in_two_folders_of_a_source_is_not_overwritten(tmp_path):
+    source = make_source(
+        tmp_path / "src",
+        ["paper"],
+        {"train": {"photo": "0 0.5 0.5 0.2 0.2\n"}, "valid": {"photo": "0 0.3 0.3 0.2 0.2\n"}},
+    )
+    out = tmp_path / "ecosort"
+    # With a fresh split both files share one original-photo name, so they land in one folder.
+    assert run_prepare(str(source), "--out", str(out), "--resplit").returncode == 0
+
+    images = sorted(p.name for p in (out / "images").rglob("*.jpg"))
+    assert images == ["src__photo.jpg", "src__photo_2.jpg"]
+    labels = sorted(p.read_text() for p in (out / "labels").rglob("*.txt"))
+    assert labels == ["0 0.300000 0.300000 0.200000 0.200000\n", "0 0.500000 0.500000 0.200000 0.200000\n"]

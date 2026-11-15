@@ -24,8 +24,8 @@ Run them in this order, from the `ai-model/` folder. The notebook does the same 
 
 | Step | Command | What it does |
 |---|---|---|
-| 1 | `python scripts/prepare_dataset.py <sources> --dry-run` | Shows how each source class will be mapped. Copies nothing. |
-| 2 | `python scripts/prepare_dataset.py <sources>` | Builds `datasets/ecosort/` and writes `dataset_report.json`. |
+| 1 | `python scripts/prepare_dataset.py <sources> --resplit --dry-run` | Shows how each source class will be mapped. Copies nothing. |
+| 2 | `python scripts/prepare_dataset.py <sources> --resplit` | Builds `datasets/ecosort/` and writes `dataset_report.json`. |
 | 3 | `python scripts/validate_dataset.py` | Checks the dataset. Training refuses to start until this passes. |
 | 4 | `python scripts/train.py --epochs 50` | Fine-tunes YOLO nano. Prints validation scores per class. |
 | 5 | `python scripts/predict.py photo.jpg` | Runs the model on one photo and saves a copy with boxes drawn. |
@@ -42,6 +42,8 @@ Run them in this order, from the `ai-model/` folder. The notebook does the same 
 - Classes it cannot decide, such as a plain "bottle", are dropped and listed so you can decide. Put your decision in `configs/class_overrides.yaml`.
 - Boxes that are empty or lie outside the image are removed, and boxes that stick out are trimmed to the image.
 - Photos from all sources are copied into one folder with the source name in front, so file names never clash.
+- Identical image files are kept once. Public datasets often contain each other's photos under different names.
+- With `--resplit`, the sources' own train/valid/test folders are ignored and one fresh 70/20/10 split is made. Copies of one original photo, and pictures that look the same, always go into the same split. Use it whenever you merge datasets from different authors.
 
 The keyword mapping is a first draft. A person must review it and record the result in [docs/dataset-card.md](../docs/dataset-card.md).
 
@@ -56,7 +58,9 @@ The keyword mapping is a first draft. A person must review it and record the res
 
 It warns about a class with under 10% of the boxes, a class missing from the validation or test split, and pictures that look identical across splits. Expect organic to be the weak class; fix it by adding your own annotated photos of peels and food scraps as one more source folder.
 
-If it reports photos in more than one split, delete `datasets/ecosort/` and run step 2 again with `--resplit`. That ignores the sources' own splits and makes a fresh 70/20/10 split in which all copies of a photo stay together.
+If it reports photos in more than one split, the dataset was built without `--resplit`. Delete `datasets/ecosort/` and run step 2 again with it.
+
+One kind of overlap cannot be detected: the same photo present in two sources with different augmentations applied (flipped in one, rotated in the other). After merging overlapping public datasets, treat test scores as somewhat optimistic, and check the model on your own fresh photos.
 
 ### Training and scoring
 
