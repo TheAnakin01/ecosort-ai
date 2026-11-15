@@ -25,11 +25,24 @@ Never guess version numbers. A pinned version that is unavailable on Roboflow wi
 
 ### 3. Import the notebook
 
-On Kaggle: **Create → New Notebook**, then **File → Import Notebook** and enter:
+On Kaggle: **Create → New Notebook**, then **File → Import Notebook** and enter the notebook from the feature branch:
 
 ```
-https://github.com/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort_kaggle.ipynb
+https://github.com/TheAnakin01/ecosort-ai/blob/feature/kaggle-training-preparation/ai-model/notebooks/train_ecosort_kaggle.ipynb
 ```
+
+The notebook clones the `feature/kaggle-training-preparation` branch automatically (cell 2), so importing from any branch works — the notebook always checks out the correct branch before running.
+
+### 3.5. Branch and commit verification
+
+The notebook verifies its Git state in cell 3:
+
+- It confirms the active branch is `feature/kaggle-training-preparation`.
+- It prints the actual commit hash and subject line.
+- It fails with a clear message if the wrong branch is checked out.
+
+This ensures the training runs against the exact code you intend. The commit hash is printed in the cell output — record it in `docs/training-log.md` for reproducibility.
+
 
 ### 3. Notebook settings (right panel / ⋮ → Settings)
 
@@ -98,6 +111,8 @@ Before committing, you may run the first cell interactively to confirm GPU, inte
 | `pip install` cell is slow or reinstalls torch | Kaggle pre-installs torch; `ultralytics` should not replace it. If the install cell takes very long, let it finish; do not interrupt. |
 | Training stops before 30 epochs | Expected: early stopping patience = 10. `best.pt` remains the best epoch. |
 | Notifications stop | If you set `NTFY_TOPIC` and notifications stop for ~40 min, open the notebook page and check the log. |
+| `Expected branch 'feature/kaggle-training-preparation', but got ...` | The notebook checked out the wrong branch. Check that the feature branch exists on GitHub and that you have internet access. Re-run the notebook. |
+| `git clone ... failed` or `git pull origin ... failed` | No internet access or the branch does not exist on GitHub. Verify Internet is **On** in notebook settings and that `feature/kaggle-training-preparation` has been pushed to the repository. |
 
 ---
 
