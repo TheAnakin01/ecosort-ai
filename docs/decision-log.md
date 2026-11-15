@@ -53,3 +53,28 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Not verified:** Parity on real waste photos (none available yet). Behaviour on a 0.1 vCPU free instance, where inference will be much slower. The Docker image build, because Docker Hub was unreachable from the sandbox; the Dockerfile is written but untested.
 - **Affected:** `backend/app/onnx_detector.py`, `backend/app/detector.py`, `backend/app/main.py` (fewer image copies), `backend/Dockerfile`, `backend/requirements-onnx.txt`, `ai-model/scripts/export_onnx.py`.
 - **Migration needed:** No. The API contract is unchanged and PyTorch remains the default for `.pt` files.
+
+## 2026-11-15 — Add GARBAGE CLASSIFICATION 3 as a fourth source
+
+- **Decision:** Add [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0) (ginas-workspace, object detection) to the merged dataset, downloaded as `garbage-cls-3`. Its BIODEGRADABLE class maps to `organic`.
+- **Reason:** More variety in photos and more labelled boxes per image, to improve localisation. Plastic and metal were the weakest classes in `ecosort-baseline-2`.
+- **Alternatives considered:** Another copy of a dataset with the same name (Roboflow Universe has more than 20); dropping BIODEGRADABLE; reviewing sample photos before mapping it.
+- **Affected:** `ai-model/notebooks/train_ecosort.ipynb`, `ai-model/README.md`, `docs/dataset-card.md`.
+- **Known risk:** BIODEGRADABLE may contain paper or leaves as well as food. If the dry run or a sample review shows that, change it with one line in `configs/class_overrides.yaml`.
+- **Migration needed:** No. The dataset must be rebuilt and the model retrained.
+
+## 2026-11-15 — Do not use the "Waste Classification by YOLOv8" dataset for now
+
+- **Decision:** Leave it out.
+- **Reason:** It is an image-classification dataset: one label per photo, no bounding boxes. The detector needs a box for every object, so it cannot be merged as it is.
+- **Alternatives considered:** Drawing boxes on it with the current model (pseudo-labelling) and reviewing a sample; finding a version of it with boxes.
+- **Affected:** Nothing.
+- **Migration needed:** No.
+
+## 2026-11-15 — Guard against overtraining and check for false detections
+
+- **Decision:** Every training run is checked for overtraining and for false detections ("hallucinations") before it is used.
+- **How:** `train.py` stops after 10 epochs without improvement (was 15) and runs `overfit_check.py` at the end. `check_hallucinations.py` runs the model on the validation split with the backend's thresholds (confidence 0.35, overlap 0.7) and counts boxes where there is no labelled item.
+- **Reason:** Asked for by the product owner. mAP is measured at a very low confidence threshold, so it does not show what the app will actually display.
+- **Affected:** `ai-model/scripts/train.py`, `ai-model/scripts/overfit_check.py`, `ai-model/scripts/check_hallucinations.py`, the notebook, `docs/training-log.md`.
+- **Migration needed:** No.
