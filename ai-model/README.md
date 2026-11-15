@@ -15,7 +15,7 @@ Datasets the team picked:
 | [Trash Detection](https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8) | |
 | [TrashNet: annotated images of trash](https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection) | Classes are cardboard, glass, metal, paper, plastic and trash. It has **no organic class**. Licensed CC BY 4.0. |
 | [Neat Now](https://universe.roboflow.com/fyp-gojku/neat-now) | |
-| [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0) | Added 2026-11-15. CC BY 4.0 per its Roboflow page. BIODEGRADABLE is mapped to organic; glass and cloth are dropped. |
+| [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp) | Added 2026-11-15. A copy of [material-identification/garbage-classification-3](https://universe.roboflow.com/material-identification/garbage-classification-3) (CC BY 4.0); the copy's own license is not yet confirmed. BIODEGRADABLE is mapped to organic; glass and cloth are dropped. |
 
 Check each dataset's license on its Roboflow page before using it.
 

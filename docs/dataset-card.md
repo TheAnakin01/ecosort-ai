@@ -19,9 +19,9 @@ Not in the dataset above. The next build and training run will include it.
 
 | Dataset | Link | Version | License | Downloaded on |
 |---|---|---|---|---|
-| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0 | Newest at download; record the number the notebook prints | CC BY 4.0 (per its Roboflow page, seen in search results 2026-11-15; confirm on the page) | Not yet |
+| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp | 5 | **Not yet checked** for this copy. The original it copies, [material-identification/garbage-classification-3](https://universe.roboflow.com/material-identification/garbage-classification-3), is CC BY 4.0 with classes biodegradable, cardboard, glass, metal, paper, plastic | 2026-11-15 |
 
-Expected mapping, to be confirmed by the dry run: BIODEGRADABLE to organic (approved by the product owner), CARDBOARD and PAPER to paper, PLASTIC to plastic, METAL to metal, GLASS and CLOTH excluded. Its photos may overlap with TrashNet.
+The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no downloadable version on Roboflow, so this copy was used instead. Expected mapping, to be confirmed by the dry run: BIODEGRADABLE to organic (approved by the product owner), CARDBOARD and PAPER to paper, PLASTIC to plastic, METAL to metal, GLASS and CLOTH excluded. Its photos may overlap with TrashNet.
 
 "Waste Classification by YOLOv8" was considered and left out: it has no bounding boxes. See `decision-log.md`.
 
