@@ -29,6 +29,13 @@ from prepare_dataset import fallback_split, map_class, source_key, to_box_line  
         ("organic_waste", "organic"),
         ("Food (Biodegradable)", "organic"),
         ("banana peel", "organic"),
+        ("Food waste", "organic"),
+        # Packaging that held food is not organic waste. These three were
+        # mapped wrongly in the first real merge.
+        ("Disposable food container", None),
+        ("Foam food container", None),
+        ("Food Can", "metal"),
+        ("Fruit juice carton", "paper"),
         ("Glass Bottle", None),
         ("battery can", None),
         ("e-waste", None),

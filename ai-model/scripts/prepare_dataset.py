@@ -64,6 +64,14 @@ KEYWORDS = {
 }
 
 
+# Words for packaging. In "food container" or "food can", the food word says
+# what the item held, not what it is made of.
+PACKAGING_WORDS = {
+    "container", "can", "cans", "tin", "carton", "packet", "wrapper", "box", "bag",
+    "cup", "tray", "tub", "bottle", "jar", "pack", "lid",
+}
+
+
 def words_of(name: str) -> list[str]:
     return re.findall(r"[a-z]+", name.lower().replace("e-waste", "ewaste"))
 
@@ -81,6 +89,9 @@ def map_class(name: str, overrides: dict[str, str]) -> str | None:
 
     words = words_of(name)
     matches = {target for target, keywords in KEYWORDS.items() if keywords & set(words)}
+    if set(words) & PACKAGING_WORDS:
+        # A piece of packaging is never organic waste, whatever it contained.
+        matches.discard("organic")
     # "waste" and similar words are too vague to drop a class that also names a material.
     hard_drop = set(words) & (DROP_WORDS - {"waste", "general", "other", "others", "trash", "garbage"})
     if hard_drop:

@@ -15,8 +15,8 @@ Working on this repo with Claude: [CLAUDE.md](CLAUDE.md) holds the project instr
 
 | Part | State |
 |---|---|
-| Backend API (`backend/`) | Matches the API specification. Tested with a stand-in detector, and against a real YOLO model trained on synthetic shapes. Not yet run with a waste model. |
-| Dataset and training scripts (`ai-model/`) | All scripts run end to end on a synthetic dataset. No real dataset has been merged and checked, and no waste model has been trained. |
+| Backend API (`backend/`) | Matches the API specification. Loads and runs the real model. Not yet hosted, and not yet checked on real waste photos. |
+| Dataset and model (`ai-model/`) | First real model trained on 2026-11-15: 0.79 mAP@50 on validation, plastic weakest. Its training data had two wrongly mapped classes, now fixed for the next run. See [docs/training-log.md](docs/training-log.md). |
 | Mobile app (`mobile/`) | All five screens work in the web version, including real inference through the backend with the synthetic-shapes model. Not yet run as an app on an Android phone. |
 
 ## How the parts fit
