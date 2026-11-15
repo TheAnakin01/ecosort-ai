@@ -275,3 +275,64 @@ def test_same_file_name_in_two_folders_of_a_source_is_not_overwritten(tmp_path):
     assert images == ["src__photo.jpg", "src__photo_2.jpg"]
     labels = sorted(p.read_text() for p in (out / "labels").rglob("*.txt"))
     assert labels == ["0 0.300000 0.300000 0.200000 0.200000\n", "0 0.500000 0.500000 0.200000 0.200000\n"]
+
+
+def boxes(count: int, cls: int = 0) -> str:
+    return "".join(f"{cls} {0.05 + 0.03 * i:.2f} 0.5 0.02 0.02\n" for i in range(count))
+
+
+def test_max_share_leaves_out_the_most_crowded_single_class_photos(tmp_path):
+    # Labels in the source: 0 = food (organic), 1 = PET bottle (plastic).
+    source = make_source(
+        tmp_path / "src",
+        ["food", "PET bottle"],
+        {
+            "train": {
+                "pile": boxes(20),  # crowded, organic only: left out first
+                "few": boxes(3),  # organic only, smaller: left out next if still needed
+                "mixed": boxes(10) + boxes(2, cls=1),  # also shows plastic: always kept
+                "bottles": boxes(6, cls=1),
+            }
+        },
+    )
+    out = tmp_path / "ecosort"
+    result = run_prepare(str(source), "--out", str(out), "--max-share", "organic=0.6")
+    assert result.returncode == 0, result.stderr
+
+    # 33 of 41 boxes are organic. Without "pile": 13 of 21 (62%), still too many.
+    # Without "few" as well: 10 of 18 (56%). "mixed" is never left out.
+    written = {p.stem for p in (out / "labels").rglob("*.txt")}
+    assert written == {"src__mixed", "src__bottles"}
+    report = json.loads((out / "dataset_report.json").read_text())
+    assert report["max_share"]["organic"] == {
+        "max_share": 0.6,
+        "images_left_out": 2,
+        "boxes_left_out": 23,
+        "share_after": round(10 / 18, 4),
+        "limit_reached": True,
+    }
+    assert report["boxes_per_class"]["plastic"] == 8
+    assert "--max-share organic=0.6" in result.stdout
+
+
+def test_max_share_stops_as_soon_as_the_share_is_reached(tmp_path):
+    source = make_source(
+        tmp_path / "src",
+        ["food", "PET bottle"],
+        {"train": {"pile": boxes(20), "few": boxes(3), "bottles": boxes(6, cls=1)}},
+    )
+    out = tmp_path / "ecosort"
+    result = run_prepare(str(source), "--out", str(out), "--max-share", "organic=0.5")
+    assert result.returncode == 0, result.stderr
+    # Without "pile": 3 organic of 9 boxes = 33%, under 50%, so "few" stays.
+    assert {p.stem for p in (out / "labels").rglob("*.txt")} == {"src__few", "src__bottles"}
+    cap = json.loads((out / "dataset_report.json").read_text())["max_share"]["organic"]
+    assert cap["limit_reached"] is True
+    assert cap["share_after"] == round(3 / 9, 4)
+
+
+def test_max_share_rejects_bad_values(tmp_path):
+    source = make_source(tmp_path / "src", ["food"], {"train": {"a": boxes(1)}})
+    for bad in ("glass=0.3", "organic=1.5", "organic=lots"):
+        result = run_prepare(str(source), "--out", str(tmp_path / f"out_{bad}"), "--max-share", bad, "--dry-run")
+        assert result.returncode != 0

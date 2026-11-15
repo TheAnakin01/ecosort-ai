@@ -23,6 +23,8 @@ Not in the dataset above. The next build and training run will include it.
 
 The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no downloadable version on Roboflow, so this copy was used instead. Expected mapping, to be confirmed by the dry run: BIODEGRADABLE to organic (approved by the product owner), CARDBOARD and PAPER to paper, PLASTIC to plastic, METAL to metal, GLASS and CLOTH excluded. Its photos may overlap with TrashNet.
 
+Its BIODEGRADABLE boxes are fruit and vegetables (sample checked 2026-11-15), many in crowded piles. The build uses `--max-share organic=0.3` so they do not swamp the other classes; see `decision-log.md`.
+
 "Waste Classification by YOLOv8" was considered and left out: it has no bounding boxes. See `decision-log.md`.
 
 To do: open the two unchecked dataset pages and record their licenses here before the model is used in a submission. The class names suggest Trash Detection is built on the TACO litter dataset; confirm that on its page too.

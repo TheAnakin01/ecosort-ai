@@ -79,3 +79,11 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Reason:** Asked for by the product owner. mAP is measured at a very low confidence threshold, so it does not show what the app will actually display.
 - **Affected:** `ai-model/scripts/train.py`, `ai-model/scripts/overfit_check.py`, `ai-model/scripts/check_hallucinations.py`, the notebook, `docs/training-log.md`.
 - **Migration needed:** No.
+
+## 2026-11-15 — Keep organic to at most 30% of boxes
+
+- **Decision:** Build the dataset with `--max-share organic=0.3`. Photos that show only organic items are left out, the most crowded first, until organic is at most 30% of all boxes.
+- **Reason:** The first dry run with GARBAGE CLASSIFICATION 3 gave organic 114,043 of 204,521 boxes (56%). Its BIODEGRADABLE class has 105,816 boxes in 5,493 photos (median 6 boxes per photo, up to 358): piles of fruit and vegetables. The mapping is right (checked on sample photos by the product owner), but at that share the model would learn to guess organic, adding organic false detections. Plastic, the weakest class, would have fallen to 14%.
+- **Alternatives considered:** Train as it is; drop BIODEGRADABLE (and every photo that contains it).
+- **Affected:** `ai-model/scripts/prepare_dataset.py`, the notebook, `ai-model/README.md`.
+- **Migration needed:** No.
