@@ -53,3 +53,20 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Not verified:** Parity on real waste photos (none available yet). Behaviour on a 0.1 vCPU free instance, where inference will be much slower. The Docker image build, because Docker Hub was unreachable from the sandbox; the Dockerfile is written but untested.
 - **Affected:** `backend/app/onnx_detector.py`, `backend/app/detector.py`, `backend/app/main.py` (fewer image copies), `backend/Dockerfile`, `backend/requirements-onnx.txt`, `ai-model/scripts/export_onnx.py`.
 - **Migration needed:** No. The API contract is unchanged and PyTorch remains the default for `.pt` files.
+
+## 2026-11-15 — Add GARBAGE CLASSIFICATION 3 as a fourth source
+
+- **Decision:** Add [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0) (ginas-workspace, object detection) to the merged dataset, downloaded as `garbage-cls-3`. Its BIODEGRADABLE class maps to `organic`.
+- **Reason:** More variety in photos and more labelled boxes per image, to improve localisation. Plastic and metal were the weakest classes in `ecosort-baseline-2`.
+- **Alternatives considered:** Another copy of a dataset with the same name (Roboflow Universe has more than 20); dropping BIODEGRADABLE; reviewing sample photos before mapping it.
+- **Affected:** `ai-model/notebooks/train_ecosort.ipynb`, `ai-model/README.md`, `docs/dataset-card.md`.
+- **Known risk:** BIODEGRADABLE may contain paper or leaves as well as food. If the dry run or a sample review shows that, change it with one line in `configs/class_overrides.yaml`.
+- **Migration needed:** No. The dataset must be rebuilt and the model retrained.
+
+## 2026-11-15 — Do not use the "Waste Classification by YOLOv8" dataset for now
+
+- **Decision:** Leave it out.
+- **Reason:** It is an image-classification dataset: one label per photo, no bounding boxes. The detector needs a box for every object, so it cannot be merged as it is.
+- **Alternatives considered:** Drawing boxes on it with the current model (pseudo-labelling) and reviewing a sample; finding a version of it with boxes.
+- **Affected:** Nothing.
+- **Migration needed:** No.

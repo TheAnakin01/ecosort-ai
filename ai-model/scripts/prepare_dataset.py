@@ -10,7 +10,8 @@ Each source folder is a dataset downloaded from Roboflow in YOLO format:
 
 Run from the ai-model/ folder:
 
-    python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet downloads/neat-now
+    python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet \
+        downloads/neat-now downloads/garbage-cls-3
 
 Add --dry-run first to see how every source class will be mapped without
 copying anything. Fix wrong or missing mappings in configs/class_overrides.yaml.

@@ -4,7 +4,7 @@ Trains a YOLO nano detector on four classes: paper, plastic, metal, organic.
 
 ## The quick way: the Colab notebook
 
-[Open the notebook in Colab](https://colab.research.google.com/github/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort.ipynb) and run it top to bottom. It downloads the three Roboflow datasets, merges them, trains, and gives you `best.pt`.
+[Open the notebook in Colab](https://colab.research.google.com/github/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort.ipynb) and run it top to bottom. It downloads the four Roboflow datasets, merges them, trains, and gives you `best.pt`.
 
 The only thing you supply is your Roboflow API key (Roboflow → Settings → API Keys). The notebook asks for it when it runs and does not save it.
 
@@ -15,6 +15,7 @@ Datasets the team picked:
 | [Trash Detection](https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8) | |
 | [TrashNet: annotated images of trash](https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection) | Classes are cardboard, glass, metal, paper, plastic and trash. It has **no organic class**. Licensed CC BY 4.0. |
 | [Neat Now](https://universe.roboflow.com/fyp-gojku/neat-now) | |
+| [GARBAGE CLASSIFICATION 3](https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0) | Added 2026-11-15. CC BY 4.0 per its Roboflow page. BIODEGRADABLE is mapped to organic; glass and cloth are dropped. |
 
 Check each dataset's license on its Roboflow page before using it.
 
@@ -31,7 +32,7 @@ Run them in this order, from the `ai-model/` folder. The notebook does the same 
 | 5 | `python scripts/predict.py photo.jpg` | Runs the model on one photo and saves a copy with boxes drawn. |
 | 6 | `python scripts/evaluate.py --split test` | The final score. Run once, at the very end. |
 
-`<sources>` is the list of downloaded dataset folders, for example `downloads/trash-detection downloads/trashnet downloads/neat-now`.
+`<sources>` is the list of downloaded dataset folders, for example `downloads/trash-detection downloads/trashnet downloads/neat-now downloads/garbage-cls-3`.
 
 ### How classes are merged
 
