@@ -14,7 +14,6 @@ sys.path.insert(0, str(SCRIPTS))  # noqa: E402
 
 import download_datasets  # noqa: E402
 from download_datasets import (  # noqa: E402
-    CONFIG_PATH,
     DATASETS,
     FALLBACK_DATASETS,
     check_key,
