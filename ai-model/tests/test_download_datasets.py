@@ -99,7 +99,7 @@ def test_find_version_fails_clear_when_requested_version_unavailable():
 
 def test_fallback_datasets_match_dataets_alias():
     # DATASETS is (folder, workspace, project); FALLBACK_DATASETS adds version.
-    for (f1, w1, p1), (f2, w2, p2, _) in zip(DATASETS, FALLBACK_DATASETS):
+    for (f1, w1, p1), (f2, w2, p2, _) in zip(DATASETS, FALLBACK_DATASETS, strict=True):
         assert (f1, w1, p1) == (f2, w2, p2)
 
 
