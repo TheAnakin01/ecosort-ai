@@ -13,6 +13,18 @@ The numbers below come from that build's `dataset_report.json`. Where something 
 | TrashNet: annotated images of trash (`trashnet`) | https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | Newest at download; number not recorded | CC BY 4.0 (per its Roboflow page, read 2026-11-14) | 2026-11-15 |
 | Neat Now (`neat-now`) | https://universe.roboflow.com/fyp-gojku/neat-now | Newest at download; number not recorded | **Not yet checked** | 2026-11-15 |
 
+### Added for the next build (2026-11-15)
+
+Not in the dataset above. The next build and training run will include it.
+
+| Dataset | Link | Version | License | Downloaded on |
+|---|---|---|---|---|
+| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/ginas-workspace/garbage-classification-3-p5ly0 | Newest at download; record the number the notebook prints | CC BY 4.0 (per its Roboflow page, seen in search results 2026-11-15; confirm on the page) | Not yet |
+
+Expected mapping, to be confirmed by the dry run: BIODEGRADABLE to organic (approved by the product owner), CARDBOARD and PAPER to paper, PLASTIC to plastic, METAL to metal, GLASS and CLOTH excluded. Its photos may overlap with TrashNet.
+
+"Waste Classification by YOLOv8" was considered and left out: it has no bounding boxes. See `decision-log.md`.
+
 To do: open the two unchecked dataset pages and record their licenses here before the model is used in a submission. The class names suggest Trash Detection is built on the TACO litter dataset; confirm that on its page too.
 
 ## Size
