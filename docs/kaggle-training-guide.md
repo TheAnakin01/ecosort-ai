@@ -12,7 +12,18 @@ This guide covers `ai-model/notebooks/train_ecosort_kaggle.ipynb`. The notebook 
 
 Sign up at kaggle.com. Under **Settings**, verify your phone number. Kaggle requires this before it enables GPU or internet for a notebook.
 
-### 2. Import the notebook
+### 2. (Recommended before a submission run) Pin dataset versions
+
+Dataset versions are configured in `ai-model/configs/datasets.yaml` in the repository. All four versions are currently unpinned (`null`), meaning each run downloads the newest Roboflow version — results are not bit-for-bit reproducible across runs.
+
+Before a submission run:
+1. Run the notebook once and read each dataset's actual version from the cell output (`<folder>: downloading version <id>`) and from `downloads/download_manifest.json`.
+2. Enter those version numbers in `configs/datasets.yaml`.
+3. Commit the updated config so future runs use the same versions.
+
+Never guess version numbers. A pinned version that is unavailable on Roboflow will cause a clear download failure rather than a silent substitution.
+
+### 3. Import the notebook
 
 On Kaggle: **Create → New Notebook**, then **File → Import Notebook** and enter:
 

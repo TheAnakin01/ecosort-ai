@@ -25,16 +25,54 @@ The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no do
 
 ### Version pinning (reproducibility)
 
-`ai-model/scripts/download_datasets.py` does **not** support version pinning: it lists each project's downloadable versions and always downloads the newest (`max(versions, key=version_number)`). There is no version parameter and no VERSIONS pin table.
+Dataset versions are configured centrally in `ai-model/configs/datasets.yaml`.
+Each of the four datasets may pin an explicit version:
 
-Consequence: a later Kaggle run may download a different Roboflow version than a previous run, changing the dataset and the metrics. This is an existing design choice; no class mapping or preprocessing is affected.
+- If `version` is set, `scripts/download_datasets.py` downloads exactly that
+  version. If the version is unavailable on Roboflow, the download fails with a
+  clear error — it never silently substitutes another version.
+- If `version` is null or unset (current state for all four datasets), the
+  script downloads the newest downloadable version and prints a warning that
+  the build is not reproducible.
 
-Recommended manual action before a submission run:
-1. Run the notebook once and read each dataset's actual version from the cell output (`<folder>: downloading version <id>`) and from `datasets/ecosort/dataset_report.json` (`sources` / build record).
-2. Record those version numbers in this table.
-3. If the team wants bit-for-bit reproducibility, modify `download_datasets.py` to accept pinned versions (add a `version` field to each `DATASETS` entry and download that specific version instead of `latest`). Do this only after the actual version numbers are known — do not guess them.
+After a download, the script writes `downloads/download_manifest.json`
+recording, for each dataset: workspace, project, requested version, selected
+version, dataset identifier, and download timestamp. `scripts/prepare_dataset.py`
+reads this manifest and records `source_versions` in
+`datasets/ecosort/dataset_report.json`, so every build record shows exactly
+which dataset versions were used.
 
-Never assume a dataset is commercially usable without evidence. Licenses marked UNKNOWN must be checked on each dataset's Roboflow page before the model is used in a submission.
+**Current state:** All four dataset versions are unpinned (`version: null`) in
+`configs/datasets.yaml`. None of the version numbers have been confirmed against
+live Roboflow projects (no Roboflow API credentials are available in this
+environment, and Roboflow Universe pages are not accessible). Do not guess
+version numbers. Before a submission run:
+
+1. Run the notebook once and read each dataset's actual version from the cell
+   output and from `downloads/download_manifest.json`.
+2. Enter those version numbers in `configs/datasets.yaml`.
+3. Record them in the version table below.
+
+Never assume a dataset is commercially usable without evidence. Licenses marked
+UNKNOWN must be checked on each dataset's Roboflow page before the model is
+used in a submission.
+
+### Pre-submission license check
+
+Before using the trained model in any submission, confirm the license of every
+dataset. The following licenses are **UNKNOWN** and must be verified:
+
+- Trash Detection (`amongus-o6ilp/trash-detection-1fjjc-ipij8`)
+- Neat Now (`fyp-gojku/neat-now`)
+- GARBAGE CLASSIFICATION 3 copy
+  (`objectdetection-z2zn1/garbage-classification-3-bjcgp`)
+
+TrashNet (`polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection`)
+is CC BY 4.0 (confirmed on its Roboflow page, 2026-11-14). The original that
+GARBAGE CLASSIFICATION 3 copies
+(`material-identification/garbage-classification-3`) is CC BY 4.0, but **a
+copied dataset does not automatically inherit the original's license** — the
+copy's own license must be checked separately.
 
 ## Size
 

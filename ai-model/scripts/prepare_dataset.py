@@ -47,6 +47,7 @@ OUR_CLASSES = ["paper", "plastic", "metal", "organic"]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 SPLIT_FOLDERS = {"train": "train", "valid": "val", "val": "val", "test": "test"}
 REPORT_NAME = "dataset_report.json"
+MANIFEST_NAME = "download_manifest.json"
 # Boxes thinner than this fraction of the image are treated as empty.
 MIN_BOX_SIDE = 1e-4
 
@@ -296,6 +297,25 @@ def parse_max_share(values: list[str]) -> dict[str, float]:
     return limits
 
 
+def load_manifest(args) -> list[dict] | None:
+    """Load the download manifest if available.
+
+    Returns a list of per-dataset version records, or None when no manifest
+    can be found. Never fails the build when the manifest is missing.
+    """
+    manifest_path = args.manifest
+    if manifest_path is None and args.sources:
+        # Auto-discover: <parent of first source>/download_manifest.json
+        manifest_path = args.sources[0].resolve().parent / MANIFEST_NAME  # type: ignore[attr-defined]
+    if manifest_path is None or not manifest_path.exists():
+        return None
+    try:
+        data = json.loads(manifest_path.read_text())
+    except (json.JSONDecodeError, OSError):
+        return None
+    return data.get("datasets", [])
+
+
 def cap_class_share(items: list[Item], name: str, max_share: float, stats: dict) -> list[Item]:
     """Leave out photos that contain only `name` until it is at most max_share of all boxes.
 
@@ -450,6 +470,14 @@ def main() -> None:
         help="ignore the sources' own train/valid/test folders and make a fresh 70/20/10 split that "
         "keeps copies of a photo, and pictures that look the same, together",
     )
+    parser.add_argument(
+        "--manifest",
+        type=Path,
+        default=None,
+        help="path to the download manifest written by download_datasets.py. "
+        "When omitted, the script looks for <parent of first source>/download_manifest.json "
+        "and records dataset versions in the build report if present.",
+    )
     args = parser.parse_args()
     max_share = parse_max_share(args.max_share)
 
@@ -457,6 +485,8 @@ def main() -> None:
     if args.overrides.exists():
         loaded = yaml.safe_load(args.overrides.read_text()) or {}
         overrides = {str(k).strip().lower(): str(v).strip().lower() for k, v in loaded.items()}
+
+    manifest = load_manifest(args)
 
     if not args.dry_run and args.out.exists():
         raise SystemExit(f"{args.out} already exists. Delete it first so old and new files do not mix.")
@@ -504,6 +534,7 @@ def main() -> None:
     report = {
         "created": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "sources": [source.name for source in args.sources],
+        "source_versions": manifest if manifest else [],
         "class_mapping": stats["mappings"],
         "overrides": overrides,
         "resplit": args.resplit,

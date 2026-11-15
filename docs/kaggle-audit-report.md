@@ -39,14 +39,23 @@
 
 ### Four Roboflow datasets (`download_datasets.py` `DATASETS`)
 
-| Folder | Workspace | Project |
-|--------|-----------|---------|
-| trash-detection | amongus-o6ilp | trash-detection-1fjjc-ipij8 |
-| trashnet | polygence-project | trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection |
-| neat-now | fyp-gojku | neat-now |
-| garbage-cls-3 | objectdetection-z2zn1 | garbage-classification-3-bjcgp |
+| Folder | Workspace | Project | Version |
+|--------|-----------|---------|---------|
+| trash-detection | amongus-o6ilp | trash-detection-1fjjc-ipij8 | Not pinned (config: `null`) |
+| trashnet | polygence-project | trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | Not pinned (config: `null`) |
+| neat-now | fyp-gojku | neat-now | Not pinned (config: `null`) |
+| garbage-cls-3 | objectdetection-z2zn1 | garbage-classification-3-bjcgp | Not pinned (config: `null`) |
 
-These match the notebook's stated sources exactly (Trash Detection, TrashNet, Neat Now, GARBAGE CLASSIFICATION 3 copy). The download script picks the **newest downloadable version** of each project; no version is pinned. This is existing behaviour and is documented as a reproducibility note below.
+These match the notebook's stated sources exactly. Version configuration is now
+centralised in `ai-model/configs/datasets.yaml`. All four versions are
+currently unpinned (`null`) because no version numbers could be confirmed
+against live Roboflow projects (no credentials, Roboflow pages return 403).
+The downloader supports explicit pinning: when a version is set, it downloads
+exactly that version and fails with a clear error if unavailable; when unset,
+it downloads the newest and prints a reproducibility warning. Selected versions
+are recorded in `downloads/download_manifest.json` and propagated into
+`datasets/ecosort/dataset_report.json` as `source_versions` by
+`prepare_dataset.py`.
 
 ### Dependencies (`requirements.txt`)
 
@@ -105,9 +114,9 @@ No hardcoded API keys, no private images, no model-family change. YOLO nano pres
 ## 4. Issues found
 
 1. **`train.py` defaults to `--epochs 50`.** The notebook correctly passes `--epochs 30`, so the 30-epoch cap is enforced at invocation. No code change required; documented here so the default does not surprise a future local run.
-2. **Dataset versions are not pinned.** `download_datasets.py` selects the newest downloadable version of each Roboflow project. A later Roboflow version would change the dataset and the metrics. Recommendation: pin versions (e.g. record the downloaded version in `dataset_report.json` / `docs/dataset-card.md`) before a submission run. Not changed, to avoid altering an approved pipeline.
+2. **Dataset versions are now pinning-capable.** `download_datasets.py` reads `configs/datasets.yaml` where each dataset may pin an explicit version. All four versions are currently `null` (unpinned) because no version numbers could be confirmed against live Roboflow projects. When pinned, the downloader downloads exactly that version and fails clearly if unavailable; when unpinned, it downloads the newest and prints a reproducibility warning. Selected versions are recorded in `downloads/download_manifest.json` and propagated into `dataset_report.json` as `source_versions`. **Action needed:** confirm actual version numbers on Roboflow and enter them in `configs/datasets.yaml` before a submission run.
 3. **No Kaggle run has been executed.** This environment has no Python, no GPU, and no Roboflow credentials, so `pytest`, the dataset merge, and training cannot be run here. No metrics in this report are claimed from a Kaggle run.
-4. **Local test execution:** `pytest` cannot run in this environment (Python not installed). All 5 test files are designed to run without GPU or Roboflow credentials; they must be run on a machine with Python + `pytest`.
+4. **Local test execution:** `pytest` cannot run in this environment (Python not installed). All 5 test files (now extended with version-pinning and provenance tests) are designed to run without GPU or Roboflow credentials; they must be run on a machine with Python + `pytest`.
 
 ---
 
@@ -115,21 +124,28 @@ No hardcoded API keys, no private images, no model-family change. YOLO nano pres
 
 | File | Change |
 |------|--------|
-| `docs/kaggle-audit-report.md` | New — this audit report |
-| `docs/kaggle-training-guide.md` | New — Kaggle setup, secrets, run & download instructions, troubleshooting |
-| `docs/training-log.md` | Updated — added "Kaggle runs" section noting no Kaggle run has been executed; real Colab metrics preserved unchanged, no fabricated metrics added |
+| `ai-model/configs/datasets.yaml` | New — central dataset source config with optional version pinning for all four datasets |
+| `ai-model/scripts/download_datasets.py` | Modified — reads configs/datasets.yaml, supports explicit version pinning, fails clearly on unavailable pinned versions, prints reproducibility warning for unpinned downloads, writes `downloads/download_manifest.json` |
+| `ai-model/scripts/prepare_dataset.py` | Modified — reads download manifest, records `source_versions` in `dataset_report.json`, adds `--manifest` argument |
+| `ai-model/tests/test_download_datasets.py` | Extended — tests for config loading, version pinning, newest fallback, manifest writing, unavailable pinned version |
+| `ai-model/tests/test_prepare_dataset.py` | Extended — tests for source_versions in report, empty versions without manifest, missing data.yaml, invalid class override |
+| `ai-model/tests/test_training_checks.py` | Extended — tests for empty CSV, single epoch, missing weights, training blocked without validation report, invalid training config |
+| `docs/kaggle-audit-report.md` | Updated — reflects version pinning implementation |
+| `docs/kaggle-training-guide.md` | Updated — version pinning instructions |
+| `docs/dataset-card.md` | Updated — version pinning section, pre-submission license warning |
+| `docs/training-log.md` | No change — Kaggle runs section already present, no run executed |
 
-No script, config, weight, or test file was modified. The YOLO nano architecture and dataset class mappings are unchanged.
+No script, config, weight, or test file was deleted or weakened. The YOLO nano architecture and dataset class mappings are unchanged.
 
 ---
 
 ## 6. Remaining manual actions (before a Kaggle run)
 
-1. On Kaggle: Create → New Notebook → File → Import Notebook, using the notebook's GitHub link.
-2. Notebook settings: Accelerator **GPU T4 x2**, Internet **On**.
-3. Add-ons → Secrets: add `ROBOFLOW_API_KEY` (Roboflow Private API key) and optional `NTFY_TOPIC`; tick **Attach** for this notebook.
-4. Save Version → Save & Run All (Commit) → Save. Wait ~8–9 h.
-5. Open the version → Output tab: download `best.pt` and `runs/`.
-6. Record the real metrics from `run_info.json` / `train.py` output into `docs/training-log.md`.
-7. (Optional, for reproducibility) Pin the Roboflow dataset versions and record them in `docs/dataset-card.md`.
-8. Check each dataset's license on its Roboflow page before using the model in a submission.
+1. Confirm actual Roboflow dataset versions and enter them in `ai-model/configs/datasets.yaml` (currently all `null`/unpinned).
+2. Check each dataset's license on its Roboflow page; update `docs/dataset-card.md` when confirmed.
+3. On Kaggle: Create → New Notebook → File → Import Notebook, using the notebook's GitHub link.
+4. Notebook settings: Accelerator **GPU T4 x2**, Internet **On**.
+5. Add-ons → Secrets: add `ROBOFLOW_API_KEY` (Roboflow Private API key) and optional `NTFY_TOPIC`; tick **Attach** for this notebook.
+6. Save Version → Save & Run All (Commit) → Save. Wait ~8–9 h.
+7. Open the version → Output tab: download `best.pt` and `runs/`.
+8. Record the real metrics from `run_info.json` / `train.py` output into `docs/training-log.md`.

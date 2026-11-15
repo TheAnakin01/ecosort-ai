@@ -1,0 +1,26 @@
+# Dataset sources for scripts/download_datasets.py.
+#
+# Each entry: folder, workspace, project, version (optional).
+#
+# If `version` is unset or null, the newest downloadable version is used and a
+# reproducibility warning is printed. Do not guess version numbers: leave them
+# null until you have read the actual version from a Roboflow download run.
+#
+# Download directory is always downloads/<folder>, regardless of version.
+datasets:
+  - folder: trash-detection
+    workspace: amongus-o6ilp
+    project: trash-detection-1fjjc-ipij8
+    version: null
+  - folder: trashnet
+    workspace: polygence-project
+    project: trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection
+    version: null
+  - folder: neat-now
+    workspace: fyp-gojku
+    project: neat-now
+    version: null
+  - folder: garbage-cls-3
+    workspace: objectdetection-z2zn1
+    project: garbage-classification-3-bjcgp
+    version: null
