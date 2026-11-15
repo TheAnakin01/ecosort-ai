@@ -1,0 +1,10 @@
+.git
+datasets
+mobile
+docs
+ai-model/runs
+ai-model/datasets
+ai-model/weights/*.pt
+**/__pycache__
+**/.pytest_cache
+.ruff_cache

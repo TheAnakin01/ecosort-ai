@@ -43,3 +43,13 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Alternatives considered:** Laptop backend on the same Wi-Fi; both.
 - **Affected:** Deployment (Phase 8). The host is not chosen yet; the documentation pack says to choose it after measuring the model's memory and speed.
 - **Migration needed:** No.
+
+## 2026-11-15 — Serve the trained model as ONNX on onnxruntime
+
+- **Decision:** The backend can load either `best.pt` (PyTorch/Ultralytics) or `best.onnx` (onnxruntime), chosen by the `MODEL_PATH` file extension. Deployment uses ONNX. The detector is still the same trained YOLO nano model; only the inference engine changes.
+- **Reason:** Free 512 MB hosts cannot hold PyTorch (about 760 MB). The ONNX runtime path idles at about 176 MB.
+- **Evidence (measured 2026-11-15, 2 vCPU sandbox, CPU):** raw model output differs from PyTorch by at most 0.004. Detections on the two Ultralytics sample images match PyTorch exactly (same classes, confidence within 0.01, boxes within 2 px; these are not waste photos). Peak RSS 360 MB for a 12 MP photo and 479 MB for a 24 MP photo, with no failures in a 512 MB cgroup. Warm latency 75-90 ms for a 0.9 MP photo, 230-290 ms for 12-24 MP.
+- **Alternatives considered:** Keep PyTorch and pay for a larger host; laptop with a tunnel (kept as a demo fallback).
+- **Not verified:** Parity on real waste photos (none available yet). Behaviour on a 0.1 vCPU free instance, where inference will be much slower. The Docker image build, because Docker Hub was unreachable from the sandbox; the Dockerfile is written but untested.
+- **Affected:** `backend/app/onnx_detector.py`, `backend/app/detector.py`, `backend/app/main.py` (fewer image copies), `backend/Dockerfile`, `backend/requirements-onnx.txt`, `ai-model/scripts/export_onnx.py`.
+- **Migration needed:** No. The API contract is unchanged and PyTorch remains the default for `.pt` files.

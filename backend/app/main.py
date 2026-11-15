@@ -175,7 +175,11 @@ def read_image(data: bytes) -> Image.Image:
         # Phone photos store rotation as metadata. Apply it, so the boxes line
         # up with the picture the user sees. Also turns grey or transparent
         # images into plain RGB.
-        return ImageOps.exif_transpose(image).convert("RGB")
+        # Each step below can copy the whole picture (36 MB for a 12 MP photo),
+        # so a copy is only made when it is actually needed.
+        if image.getexif().get(0x0112, 1) != 1:
+            image = ImageOps.exif_transpose(image)
+        return image if image.mode == "RGB" else image.convert("RGB")
     except Exception as exc:
         raise errors.invalid_image() from exc
 
