@@ -129,7 +129,8 @@ def main() -> None:
     build_record = dataset / "dataset_report.json"
     run_info = {
         "finished": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "run_name": args.name,
+        # The folder name, which gets a number added when the name is already taken.
+        "run_name": run_dir.name,
         "starting_weights": args.model,
         "epochs_requested": args.epochs,
         "image_size": args.imgsz,

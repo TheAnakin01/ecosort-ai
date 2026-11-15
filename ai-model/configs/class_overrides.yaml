@@ -5,11 +5,34 @@
 # mapping first.
 #
 # Format:  source class name (lower case): paper | plastic | metal | organic | drop
+#
+# Every line here is a decision about what the model is taught. Record the
+# reasoning in docs/dataset-card.md.
 
 # TrashNet has separate cardboard and paper classes; both are paper for us.
 cardboard: paper
 
-# Examples. Uncomment and edit the ones your datasets need.
-# bottle: plastic        # only if every "bottle" in that dataset is plastic
-# cup: drop              # paper and plastic cups look alike; safer to drop
-# banana peel: organic
+# ----- Decided after reviewing the first real merge (2026-11-15) -----
+
+# Containers that held food. The keyword "food" had mapped these to organic,
+# which taught the model that foam and plastic containers are food waste.
+# They are a mix of plastic, foam and foil, so they are left out.
+disposable food container: drop
+foam food container: drop
+
+# ----- Suggested, waiting for a team decision -----
+# These were dropped by the first merge. Each looks like one clear material.
+# Uncomment a line to include that class in the next training run.
+# food can: metal              # 34 boxes
+# pop tab: metal               # 99 boxes
+# pizza box: paper             # 3 boxes; often greasy
+# toilet tube: paper           # 5 boxes
+# single-use carrier bag: plastic   # 61 boxes
+# polypropylene bag: plastic   # 3 boxes
+# foam cup: plastic            # 13 boxes; "styrofoam piece" is already plastic
+
+# ----- Worth a second look -----
+# These are currently included but are mixed materials in real life.
+# paper cup: drop              # usually has a plastic lining
+# drink carton: drop           # paper, plastic and foil layers
+# aluminium blister pack: drop # foil and plastic
