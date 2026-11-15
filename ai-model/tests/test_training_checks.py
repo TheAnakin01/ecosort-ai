@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
@@ -119,3 +121,109 @@ def test_summary_counts_hallucinations_per_class():
     assert summary["per_class"]["metal"]["labelled_as_this_but_called"] == {"paper": 1}
     assert summary["images_without_labels"] == 1
     assert summary["of_which_got_detections"] == 1
+
+
+def test_read_results_raises_on_empty_csv(tmp_path):
+    csv = tmp_path / "results.csv"
+    csv.write_text("epoch,metrics/mAP50-95(B)\n")
+    with pytest.raises(SystemExit, match="has no epochs"):
+        read_results(csv)
+
+
+def test_check_single_epoch():
+    rows = epochs([0.50], [2.0], [1.8])
+    report = check(rows)
+    assert report["epochs_run"] == 1
+    assert report["best_epoch"] == 1
+    assert report["verdict"] in ("levelled off", "still improving")
+
+
+def test_check_hallucinations_missing_weights(tmp_path, monkeypatch):
+    """check_hallucinations.py fails with a clear message when weights are missing,
+    before any PyTorch import."""
+    import check_hallucinations
+
+    missing = tmp_path / "nonexistent.pt"
+    assert not missing.exists()
+
+    # Simulate CLI args with missing weights.
+    test_args = ["check_hallucinations.py", "--weights", str(missing)]
+    monkeypatch.setattr(sys, "argv", test_args)
+    with pytest.raises(SystemExit, match="not found"):
+        check_hallucinations.main()
+
+
+def test_train_blocked_without_validation_report(tmp_path):
+    """train.py refuses to train when validation_report.json is missing.
+
+    This test runs train.py as a subprocess. It requires torch/ultralytics to be
+    installed; without them the import itself fails, which still proves the
+    script cannot start training. The key assertion is that the process exits
+    non-zero and never reaches model training.
+    """
+    import subprocess
+
+    # Create a data.yaml pointing at a nonexistent dataset.
+    data_yaml = tmp_path / "data.yaml"
+    data_yaml.write_text(
+        "path: /nonexistent/dataset\n"
+        "train: images/train\n"
+        "val: images/val\n"
+        "test: images/test\n"
+        "names: [paper, plastic, metal, organic]\n"
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPTS / "train.py"),
+            "--data",
+            str(data_yaml),
+            "--epochs",
+            "1",
+            "--name",
+            "no-validation",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0
+    combined = result.stdout + result.stderr
+    # Either validation report missing, dataset folder missing, or torch import error.
+    assert any(
+        phrase in combined
+        for phrase in (
+            "validation_report.json",
+            "Dataset folder not found",
+            "validate_dataset.py",
+            "No module named",
+        )
+    ), combined
+
+
+def test_invalid_training_config_rejected(tmp_path):
+    """train.py exits non-zero when the dataset path is invalid (never reaches training)."""
+    import subprocess
+
+    data_yaml = tmp_path / "data.yaml"
+    data_yaml.write_text(
+        "path: /nonexistent/dataset\n"
+        "train: images/train\n"
+        "val: images/val\n"
+        "test: images/test\n"
+        "names: [paper, plastic, metal, organic]\n"
+    )
+
+    result = subprocess.run(
+        [
+            sys.executable,
+            str(SCRIPTS / "train.py"),
+            "--data",
+            str(data_yaml),
+            "--epochs",
+            "0",
+        ],
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode != 0

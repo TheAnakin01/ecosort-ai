@@ -336,3 +336,77 @@ def test_max_share_rejects_bad_values(tmp_path):
     for bad in ("glass=0.3", "organic=1.5", "organic=lots"):
         result = run_prepare(str(source), "--out", str(tmp_path / f"out_{bad}"), "--max-share", bad, "--dry-run")
         assert result.returncode != 0
+
+
+def test_dataset_report_records_source_versions_from_manifest(tmp_path):
+    """When a download manifest exists, dataset_report.json records source versions."""
+    source = make_source(
+        tmp_path / "src",
+        ["paper"],
+        {"train": {"a": "0 0.5 0.5 0.2 0.2\n"}},
+    )
+    out = tmp_path / "ecosort"
+    # Write a manifest alongside the source (parent = tmp_path).
+    manifest = {
+        "downloaded_at": "2026-11-15T00:00:00+00:00",
+        "datasets": [
+            {
+                "folder": "src",
+                "workspace": "test-workspace",
+                "project": "test-project",
+                "version_requested": 3,
+                "version_selected": 3,
+                "dataset_id": "test-workspace/test-project/3",
+                "downloaded_at": "2026-11-15T00:00:00+00:00",
+            }
+        ],
+    }
+    (tmp_path / "download_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
+
+    result = run_prepare(str(source), "--out", str(out))
+    assert result.returncode == 0, result.stderr
+
+    report = json.loads((out / "dataset_report.json").read_text())
+    assert report["source_versions"] == manifest["datasets"]
+    assert report["sources"] == ["src"]
+
+
+def test_dataset_report_has_empty_source_versions_without_manifest(tmp_path):
+    """Without a manifest, source_versions is an empty list (build still works)."""
+    source = make_source(
+        tmp_path / "src",
+        ["paper"],
+        {"train": {"a": "0 0.5 0.5 0.2 0.2\n"}},
+    )
+    out = tmp_path / "ecosort"
+    result = run_prepare(str(source), "--out", str(out))
+    assert result.returncode == 0, result.stderr
+
+    report = json.loads((out / "dataset_report.json").read_text())
+    assert report["source_versions"] == []
+    assert report["sources"] == ["src"]
+
+
+def test_missing_data_yaml_fails_with_clear_message(tmp_path):
+    """A source folder without data.yaml fails fast."""
+    missing = tmp_path / "no_data_yaml"
+    missing.mkdir()
+    result = run_prepare(str(missing), "--out", str(tmp_path / "out_missing"))
+    assert result.returncode != 0
+    assert "data.yaml not found" in result.stderr
+
+
+def test_invalid_class_override_is_rejected(tmp_path):
+    """An override mapping to a non-class raises ValueError."""
+    source = make_source(
+        tmp_path / "src",
+        ["paper"],
+        {"train": {"a": "0 0.5 0.5 0.2 0.2\n"}},
+    )
+    out = tmp_path / "ecosort"
+    overrides = tmp_path / "overrides.yaml"
+    overrides.write_text("paper: glass\n")
+    result = run_prepare(
+        str(source), "--out", str(out), "--overrides", str(overrides)
+    )
+    assert result.returncode != 0
