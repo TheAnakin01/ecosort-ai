@@ -16,8 +16,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 import ultralytics
-from train import AI_MODEL_DIR, overall_metrics, per_class_rows, print_metrics
 from ultralytics import YOLO
+
+from dataset_paths import absolute_data_yaml
+from train import AI_MODEL_DIR, overall_metrics, per_class_rows, print_metrics
 
 
 def main() -> None:
@@ -33,7 +35,8 @@ def main() -> None:
         raise SystemExit(f"{args.weights} not found. Train a model first, or pass --weights.")
 
     model = YOLO(str(args.weights))
-    metrics = model.val(data=str(args.data), split=args.split, imgsz=args.imgsz, plots=False, verbose=False)
+    data = str(absolute_data_yaml(args.data))
+    metrics = model.val(data=data, split=args.split, imgsz=args.imgsz, plots=False, verbose=False)
     overall, rows = overall_metrics(metrics), per_class_rows(metrics)
     print_metrics("validation" if args.split == "val" else "test", overall, rows)
 

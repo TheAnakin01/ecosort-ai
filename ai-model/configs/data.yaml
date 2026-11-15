@@ -1,5 +1,7 @@
 # Dataset config for Ultralytics YOLO.
-# "path" is the dataset folder; train/val/test are folders inside it.
+# "path" is the dataset folder, relative to this file; train/val/test are
+# folders inside it. train.py and evaluate.py turn it into a full path before
+# handing it to Ultralytics.
 # Each image needs a matching .txt label file (YOLO format) in labels/.
 #
 # datasets/ecosort/
