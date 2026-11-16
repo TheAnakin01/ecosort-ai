@@ -97,3 +97,12 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Verified:** The whole notebook ran end to end in a simulated Kaggle setup (stand-in secrets and GPU check, synthetic datasets, 2 epochs on CPU). Not verified: an actual Kaggle session.
 - **Affected:** `ai-model/notebooks/train_ecosort_kaggle.ipynb`, `ai-model/scripts/download_datasets.py`, `ai-model/README.md`.
 - **Migration needed:** No.
+
+
+## 2026-11-16 — Compare run 1 and run 2 before changing the app's model
+
+- **Decision:** Do not merge run 2's `best.zip` into `main` and do not replace `ai-model/weights/best.onnx` yet. First score both models on the same validation photos, leaving out photos run 1 trained on, with `notebooks/compare_models_kaggle.ipynb`. The better model, judged on accuracy per class and on false detections at the app's settings, is then converted to ONNX and committed as `ai-model/weights/best.onnx` with its record.
+- **Reason:** Run 2 scored lower than run 1 (mAP@50-95 0.564 against 0.690), but on its own, harder validation split, so the numbers cannot be compared. Run 2's validation photos can include photos run 1 trained on, because adding a dataset regroups look-alike photos. `.pt` files are kept out of Git by `.gitignore`; only the deployable ONNX model is stored.
+- **Also:** The Kaggle training notebook cloned the `feature/kaggle-training-preparation` branch (from PR #5). It clones `main` again, so runs use the reviewed code. Markdown cells no longer carry an invalid `outputs` field.
+- **Affected:** `ai-model/notebooks/compare_models_kaggle.ipynb`, `ai-model/scripts/make_comparison_split.py`, `ai-model/notebooks/train_ecosort_kaggle.ipynb`, `docs/training-log.md`.
+- **Migration needed:** No.
