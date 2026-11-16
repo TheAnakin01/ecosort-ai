@@ -35,7 +35,7 @@ A good overall score can hide a weak class.
 
 ### Run 2: ecosort-baseline on Kaggle (2026-11-16)
 
-- **Source of these numbers:** the `train_metrics` and `train_results` stored inside the run's `best.pt`, read without loading the model. The file was uploaded as `best.zip` on the `Exit0Hero-patch-1` branch (SHA-256 `e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669`). Ultralytics 8.4.214, finished 2026-11-16 00:49 UTC.
+- **Source of these numbers:** the `train_metrics` and `train_results` stored inside the run's `best.pt`, read without loading the model. The file is `best.zip` at the top of the repo (merged in PR #6) (SHA-256 `e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669`). Ultralytics 8.4.214, finished 2026-11-16 00:49 UTC.
 - **Data:** four sources (adds GARBAGE CLASSIFICATION 3), organic capped at 30% of boxes.
 - **Speed:** about 5.4 minutes per epoch on Kaggle, 2.7 hours in total (Colab took about 17 minutes per epoch on this dataset).
 - **Overtraining check: none.** Validation loss fell every epoch and the best epoch was the last (30). Verdict "still improving", but only just: mAP@50-95 rose 0.005 over the last 5 epochs.
