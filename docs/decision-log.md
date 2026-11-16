@@ -114,3 +114,10 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Comparison notebook:** downloads run 2 from `main` (same file, SHA-256 `e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669`), so deleting the `Exit0Hero-patch-1` branch does not break it.
 - **Affected:** `best.zip`, `ai-model/notebooks/compare_models_kaggle.ipynb`.
 
+## 2026-11-17 — The app serves run 2's model
+
+- **Decision:** `ai-model/weights/best.onnx` is now run 2's model (converted from `best.zip`, SHA-256 `e57748e9…`). Run 1's ONNX model stays in Git history at commit `042b1a3`.
+- **Reason:** On 7,501 validation photos neither model trained on, run 2 beat run 1 on every accuracy score (mAP@50-95 0.550 against 0.386, recall 0.622 against 0.466, better AP for every class) and had a lower share of boxes on nothing at the app's settings (5.8% against 7.5%). Organic false detections rose (4.0% to 7.6%). See `training-log.md`.
+- **Checked:** The backend's ONNX detector and the PyTorch model gave the same 555 boxes (same class, IoU above 0.95, confidence gap 0.0000) on the 24 real photos in PR #9; the backend tests and the ONNX parity test pass with it.
+- **Affected:** `ai-model/weights/best.onnx`, `ai-model/weights/best.onnx.json`, `ai-model/notebooks/compare_models_kaggle.ipynb` (run 1 now downloaded from commit `042b1a3`).
+- **Migration needed:** None in the repo. Any running backend loads the model at start-up, so restart or redeploy it to pick up the new file.
