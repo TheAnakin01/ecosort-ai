@@ -106,3 +106,11 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Also:** The Kaggle training notebook cloned the `feature/kaggle-training-preparation` branch (from PR #5). It clones `main` again, so runs use the reviewed code. Markdown cells no longer carry an invalid `outputs` field.
 - **Affected:** `ai-model/notebooks/compare_models_kaggle.ipynb`, `ai-model/scripts/make_comparison_split.py`, `ai-model/notebooks/train_ecosort_kaggle.ipynb`, `docs/training-log.md`.
 - **Migration needed:** No.
+
+## 2026-11-16 — Run 2's checkpoint kept in the repo as best.zip
+
+- **Decision (team, PR #6):** Run 2's `best.pt` is stored in `main` as `best.zip` at the top of the repo, to preserve it. This replaces the earlier plan of keeping it on its branch only.
+- **Effect on the app:** none. The backend still serves `ai-model/weights/best.onnx`, which is run 1's model, until the comparison picks a winner.
+- **Comparison notebook:** downloads run 2 from `main` (same file, SHA-256 `e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669`), so deleting the `Exit0Hero-patch-1` branch does not break it.
+- **Affected:** `best.zip`, `ai-model/notebooks/compare_models_kaggle.ipynb`.
+
