@@ -10,6 +10,8 @@ Trains a YOLO nano detector on four classes: paper, plastic, metal, organic.
 
 [`notebooks/train_ecosort_kaggle.ipynb`](notebooks/train_ecosort_kaggle.ipynb) does the same build and training, but runs unattended with **Save & Run All (Commit)**: close the browser and come back to `best.pt` in the version's Output tab. It needs Kaggle's GPU T4 x2 and Internet settings, and a `ROBOFLOW_API_KEY` secret (plus an optional `NTFY_TOPIC` for phone notifications). The setup steps are at the top of the notebook. Each Kaggle account has its own weekly GPU hours, so a teammate can run it on theirs.
 
+[`notebooks/compare_models_kaggle.ipynb`](notebooks/compare_models_kaggle.ipynb) scores two models on the same validation photos, leaving out any photo the older model trained on (`scripts/make_comparison_split.py`). It reports accuracy per class and false detections at the app's settings. No training; about an hour.
+
 The only thing you supply is your Roboflow API key (Roboflow → Settings → API Keys). The notebook asks for it when it runs and does not save it.
 
 Datasets the team picked:

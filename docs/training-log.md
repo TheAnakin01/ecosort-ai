@@ -7,6 +7,7 @@ One entry per training run. Only write numbers that a real run produced. Copy th
 | Date | Run name | Starting weights | Dataset built on | Epochs | Image size | Seed | Split scored | Precision | Recall | mAP@50 | mAP@50-95 |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | 2026-11-15 | ecosort-baseline-2 | yolo11n.pt | 2026-11-15T07:30:44+00:00 | 30 | 640 | 0 | validation | 0.810 | 0.703 | 0.788 | 0.690 |
+| 2026-11-16 | ecosort-baseline (Kaggle, "run 2") | yolo11n.pt | four sources, `--max-share organic=0.3` | 30 | 640 | 0 | validation (its own, larger split) | 0.776 | 0.633 | 0.721 | 0.564 |
 
 ## Per-class results
 
@@ -32,6 +33,15 @@ A good overall score can hide a weak class.
 - **Not done yet:** no test-split score, no confusion matrix review, no look at failure photos, no check on the team's own photos. The confidence thresholds are still the untuned defaults.
 - **Speed, measured on a 2-core CPU:** about 70 ms per 1280x960 image after the first request, and about 760 MB of memory with the model loaded.
 
+### Run 2: ecosort-baseline on Kaggle (2026-11-16)
+
+- **Source of these numbers:** the `train_metrics` and `train_results` stored inside the run's `best.pt`, read without loading the model. The file was uploaded as `best.zip` on the `Exit0Hero-patch-1` branch (SHA-256 `e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669`). Ultralytics 8.4.214, finished 2026-11-16 00:49 UTC.
+- **Data:** four sources (adds GARBAGE CLASSIFICATION 3), organic capped at 30% of boxes.
+- **Speed:** about 5.4 minutes per epoch on Kaggle, 2.7 hours in total (Colab took about 17 minutes per epoch on this dataset).
+- **Overtraining check: none.** Validation loss fell every epoch and the best epoch was the last (30). Verdict "still improving", but only just: mAP@50-95 rose 0.005 over the last 5 epochs.
+- **Not comparable with run 1 as it stands.** Each run was scored on its own validation split, and run 2's is larger and harder (crowded produce piles, and the container classes run 1 wrongly called organic are gone). `notebooks/compare_models_kaggle.ipynb` scores both models on the same photos that neither trained on. Until that has run, do not call either model better.
+- **Missing:** per-class scores and the false-detection report. They are in the Kaggle run's Output (`runs/ecosort-baseline/`), not in the repo yet.
+
 ## Rules
 
 - Record the **overtraining check** verdict (from `train.py` or `overfit_check.py`) for every run.
@@ -47,7 +57,7 @@ On 2026-11-14 the scripts were run end to end on a synthetic dataset of coloured
 
 ## Kaggle runs
 
-No Kaggle training run has been executed yet. This section is intentionally empty: metrics may only be recorded here from a real Kaggle run, copied from the run's `run_info.json` or from `train.py`'s printed validation table. Do not fabricate training or validation results.
+Run 2 (2026-11-16) is recorded in the Runs table above. Metrics may only be recorded from a real Kaggle run, copied from the run's `run_info.json`, from `train.py`'s printed validation table, or from the metrics stored in its `best.pt`. Do not fabricate training or validation results.
 
 To record a Kaggle run:
 
