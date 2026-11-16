@@ -1,9 +1,9 @@
 {
   "source_weights": "best.pt",
-  "source_sha256": "f2e7a74a3b350600c7c7355c56e885b83ddbb149a0a693481ba23baf5bbfef20",
+  "source_sha256": "e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669",
   "onnx_file": "best.onnx",
-  "onnx_size_bytes": 11696862,
-  "onnx_sha256": "0e38fc74c6f5f6d1cc1fb67314191f4a4124fba4874b4310c24375177e7dc687",
+  "onnx_size_bytes": 11125532,
+  "onnx_sha256": "089400a8cc5c81d2b8b3549c849ecc1c6d9dae8b23331e0548f9b84db2319d8b",
   "imgsz": 640,
   "opset": 17,
   "class_names": [
@@ -12,5 +12,5 @@
     "metal",
     "organic"
   ],
-  "ultralytics_version": "8.4.213"
+  "ultralytics_version": "8.4.214"
 }
