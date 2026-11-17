@@ -15,8 +15,8 @@ Working on this repo with Claude: [CLAUDE.md](CLAUDE.md) holds the project instr
 
 | Part | State |
 |---|---|
-| Backend API (`backend/`) | Matches the API specification. Loads and runs the real model. Not yet hosted, and not yet checked on real waste photos. |
-| Dataset and model (`ai-model/`) | First real model trained on 2026-11-15: 0.79 mAP@50 on validation, plastic weakest. Its training data had two wrongly mapped classes, now fixed for the next run. See [docs/training-log.md](docs/training-log.md). |
+| Backend API (`backend/`) | Matches the API specification. Runs the real model as PyTorch or ONNX (ONNX fits a 512 MB host). Not yet hosted. |
+| Dataset and model (`ai-model/`) | Run 2 (Kaggle, four datasets, mapping fixed) beats run 1 on 7,501 shared validation photos (mAP@50-95 0.550 vs 0.386) and is the model in `ai-model/weights/`. Not yet tested on own phone photos. See [docs/training-log.md](docs/training-log.md). |
 | Mobile app (`mobile/`) | All five screens work in the web version, including real inference through the backend with the synthetic-shapes model. Not yet run as an app on an Android phone. |
 
 ## How the parts fit
