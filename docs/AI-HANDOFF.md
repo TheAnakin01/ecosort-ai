@@ -30,6 +30,7 @@ EcoSort AI detects several waste items in one photo and labels each as paper, pl
 - ONNX export: `python ai-model/scripts/export_onnx.py --weights ai-model/weights/best.pt` writes `best.onnx` and `best.onnx.json` (size, SHA-256, source checkpoint hash). Dynamic input shape; the backend letterboxes like Ultralytics, which is what makes detections match.
 - Current ONNX artifact: see `ai-model/weights/best.onnx.json` (size, SHA-256, source checkpoint).
 - Tests: 52 pass, 6 skip without model files (backend/). The parity test passes when given both files.
+- CI lint fix: `ai-model/tests/test_download_datasets.py` and `test_training_checks.py` are Ruff-clean; focused dataset tests pass 26/26, full AI tests pass 109/109, and backend tests pass 52/52 with 6 model-dependent skips.
 
 ## Not done / open
 
