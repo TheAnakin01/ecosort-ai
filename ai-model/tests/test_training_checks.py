@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 SCRIPTS = Path(__file__).resolve().parent.parent / "scripts"
 sys.path.insert(0, str(SCRIPTS))
 
@@ -163,7 +165,13 @@ def test_train_blocked_without_validation_report(tmp_path):
 
     # Create a data.yaml pointing at a nonexistent dataset.
     data_yaml = tmp_path / "data.yaml"
-    data_yaml.write_text("path: /nonexistent/dataset\ntrain: images/train\nval: images/val\ntest: images/test\nnames: [paper, plastic, metal, organic]\n")
+    data_yaml.write_text(
+        "path: /nonexistent/dataset\n"
+        "train: images/train\n"
+        "val: images/val\n"
+        "test: images/test\n"
+        "names: [paper, plastic, metal, organic]\n"
+    )
 
     result = subprocess.run(
         [
@@ -198,7 +206,13 @@ def test_invalid_training_config_rejected(tmp_path):
     import subprocess
 
     data_yaml = tmp_path / "data.yaml"
-    data_yaml.write_text("path: /nonexistent/dataset\ntrain: images/train\nval: images/val\ntest: images/test\nnames: [paper, plastic, metal, organic]\n")
+    data_yaml.write_text(
+        "path: /nonexistent/dataset\n"
+        "train: images/train\n"
+        "val: images/val\n"
+        "test: images/test\n"
+        "names: [paper, plastic, metal, organic]\n"
+    )
 
     result = subprocess.run(
         [
