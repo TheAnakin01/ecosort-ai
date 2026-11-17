@@ -2,7 +2,7 @@
 # Free instances have 512 MB RAM and sleep after about 15 minutes idle.
 services:
   - type: web
-    name: ecosort-backend
+    name: ecosort-ai-srujan26
     runtime: docker
     plan: free
     dockerfilePath: ./backend/Dockerfile
