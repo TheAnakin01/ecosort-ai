@@ -20,6 +20,7 @@ Run from the ai-model/ folder:
 import argparse
 import json
 import os
+import shutil
 from pathlib import Path
 
 import yaml
@@ -57,7 +58,10 @@ def make_split(val_from: Path, exclude_train_of: Path, out: Path, class_names: l
             (label, out / "labels" / "val" / label.name),
         ):
             if source.exists() and not target.exists():
-                os.symlink(source.resolve(), target)
+                try:
+                    os.symlink(source.resolve(), target)
+                except OSError:
+                    shutil.copy2(source, target)
         kept += 1
 
     # evaluate.py asks Ultralytics for the "val" split; train must exist too, so it points at the same folder.
