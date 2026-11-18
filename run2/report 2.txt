@@ -1,0 +1,98 @@
+{
+  "checked": "2026-11-16T18:18:15+00:00",
+  "weights": "/kaggle/working/models/run2.onnx",
+  "split": "val",
+  "conf": 0.35,
+  "iou": 0.7,
+  "image_size": 640,
+  "images": 7501,
+  "detections": 18580,
+  "on_nothing": 1082,
+  "share_on_nothing": 0.0582,
+  "images_without_labels": 1,
+  "of_which_got_detections": 1,
+  "per_class": {
+    "paper": {
+      "detections": 5154,
+      "correct": 3962,
+      "wrong class": 342,
+      "duplicate": 201,
+      "poor box": 472,
+      "on nothing": 177,
+      "share_correct": 0.7687,
+      "share_on_nothing": 0.0343,
+      "labelled": 6461,
+      "missed": 2310,
+      "labelled_as_this_but_called": {
+        "plastic": 95,
+        "metal": 93,
+        "organic": 1
+      }
+    },
+    "plastic": {
+      "detections": 4106,
+      "correct": 3144,
+      "wrong class": 269,
+      "duplicate": 132,
+      "poor box": 208,
+      "on nothing": 353,
+      "share_correct": 0.7657,
+      "share_on_nothing": 0.086,
+      "labelled": 5478,
+      "missed": 1947,
+      "labelled_as_this_but_called": {
+        "organic": 26,
+        "paper": 212,
+        "metal": 149
+      }
+    },
+    "metal": {
+      "detections": 4153,
+      "correct": 3294,
+      "wrong class": 299,
+      "duplicate": 97,
+      "poor box": 302,
+      "on nothing": 161,
+      "share_correct": 0.7932,
+      "share_on_nothing": 0.0388,
+      "labelled": 4789,
+      "missed": 1199,
+      "labelled_as_this_but_called": {
+        "organic": 3,
+        "plastic": 172,
+        "paper": 121
+      }
+    },
+    "organic": {
+      "detections": 5167,
+      "correct": 4182,
+      "wrong class": 30,
+      "duplicate": 118,
+      "poor box": 446,
+      "on nothing": 391,
+      "share_correct": 0.8094,
+      "share_on_nothing": 0.0757,
+      "labelled": 7616,
+      "missed": 3366,
+      "labelled_as_this_but_called": {
+        "paper": 9,
+        "metal": 57,
+        "plastic": 2
+      }
+    }
+  },
+  "example_photos": [
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable552_jpg.rf.e605f25154d00c6af1d5c516c5211848.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable1625_jpg.rf.c9293fa6334a8571e2d6b3783dcdf6ca.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable15_jpg.rf.99a307a50347b1b379efe5e00562e323.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/neat-now__train_009765_jpg.rf.9c3c0ccdbc52e5412509752c79a7e435.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable552_jpg.rf.7414de6e6d701d570de8d1f1cb3f612e.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/neat-now__valid_000584_jpg.rf.2dbd7b1b780b7f45dbf1b1e00aa0f94c.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable15_jpg.rf.6e14ea82210c9c4d8fcd03c8fc4b914d.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable797_jpg.rf.72261bf5b4e41df586e77c743cb8a2dd.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__metal97_jpg.rf.ed44bc562c5a2d3e0a2de8c8bdbeeb97.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/neat-now__train_009290_jpg.rf.1caf240ba3331307e259ddbfd7d07f4b.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable1208_jpg.rf.1cb1b3067fdde820377bb21d3a23b0c9.jpg",
+    "/kaggle/working/run2_false_detections/worst_photos/garbage-cls-3__biodegradable142_jpg.rf.de29a69bec66b0d5ff532db9292a4de3.jpg"
+  ]
+}

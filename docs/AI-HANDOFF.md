@@ -1,15 +1,41 @@
-# AI handoff — backend
+# AI handoff — whole project
 
-Last updated: 2026-11-15. Read `CLAUDE.md`, `AGENTS.md` and `docs/decision-log.md` first.
+Last updated: 2026-11-18. Read `CLAUDE.md`, `AGENTS.md` and `docs/decision-log.md` first.
+
+## Project overview (read this first)
+
+EcoSort AI detects several waste items in one photo and labels each as paper, plastic, metal or organic, with boxes, confidence and sorting tips. Parts: `ai-model/` (data + training), `backend/` (FastAPI), `mobile/` (Expo app, also published as a web page).
+
+### Done
+- Dataset pipeline: Roboflow datasets merged, class-mapped, de-duplicated, grouped split, leakage-validated (`ai-model/scripts/`, Colab and Kaggle notebooks). A fourth source (GARBAGE CLASSIFICATION 3) was added by Exit0Hero, with dataset version pinning and `--max-share` to cap organic at 30%.
+- Run 1 (Colab, 2026-11-15): val mAP@50 0.789 on its own split; old mapping flaw. Run 2 (Kaggle, 2026-11-16, four sources, mapping fixed, 30 epochs): on 7,501 photos neither run trained on, run 2 beats run 1 (mAP@50-95 0.550 vs 0.386; recall 0.622 vs 0.466; every class better). Organic false detections rose (4.0% to 7.6%). Details: `docs/training-log.md`.
+- **The model in the repo (`ai-model/weights/best.onnx`) is run 2** (11,125,532 bytes, sha256 `089400a8...9d8b`, from `best.zip`, Ultralytics 8.4.214), merged in PR #10. Backend ONNX and PyTorch detectors agree on 24 real photos (555/555 boxes).
+- Backend complete against the API spec; runs `.pt` or `.onnx`. Mobile app: Home, Scan, Results (boxes), History (on-device), Learn; web build on GitHub Pages (last deployed 2026-11-14; later commits did not touch `mobile/`). CI passing on `main` as of 2026-11-16.
+
+### Added 2026-11-18 (branch `feature/finish-mvp`)
+- Backend rate limit on `/api/v1/detect`: 60 scans per minute per client IP (`RATE_LIMIT_PER_MINUTE`, 0 = off), 429 `RATE_LIMITED` with `Retry-After`. Behind Render, `TRUST_PROXY_HEADERS=true` uses the last `X-Forwarded-For` entry. Not verified on Render whether that entry is the visitor or a shared proxy; if many users get 429 together, set `RATE_LIMIT_PER_MINUTE=0` in the Render dashboard.
+- `mobile/eas.json`: `preview` builds an APK, `production` an AAB, both pointing at `https://ecosort-ai-srujan26.onrender.com`. Steps in `mobile/README.md`.
+- `ai-model/scripts/tune_thresholds.py`: sweeps confidence on the validation split and recommends both thresholds.
+- `docs/KNOWN_LIMITATIONS.md`: release notes, limitations, privacy, demo script.
+- `docs/implementation/EXECUTION_TRACKER.md` corrected (it predated run 2 and the deployment).
+
+### Not done (in priority order)
+1. Confirm one real scan on the hosted web app (backend is live; `API_URL` set 2026-11-17).
+2. Build the APK (`mobile/README.md`), install it, scan on a phone. Check the Render address in `eas.json` matches yours.
+3. Kaggle: run `tune_thresholds.py` on the validation split, set the two thresholds in `render.yaml`, then score the test split once with `evaluate.py --split test`. Record both in `docs/training-log.md`.
+4. Test on 20-30 own phone photos; optional run 3 with own annotated photos.
+5. Confirm three dataset licences; add a LICENSE file (team decision; Ultralytics is AGPL-3.0).
+
+### Backend details
 
 ## State
 
 - Backend (FastAPI) is complete against the API spec and tested: `/health`, `/api/v1/detect`, `/categories`, `/guidance/{category}`, `/model-info`.
-- Detector: trained YOLO11n (`ecosort-baseline-2`, val mAP@50 0.789, mAP@50-95 0.690; test split not yet scored).
+- Detector: trained YOLO11n, run 2 (see overview). Test split not yet scored.
 - Two inference paths, chosen by `MODEL_PATH` extension: `.pt` (Ultralytics, `requirements.txt`) and `.onnx` (onnxruntime, `requirements-onnx.txt`, no PyTorch). Details and measurements: decision log, 2026-11-15.
 - ONNX export: `python ai-model/scripts/export_onnx.py --weights ai-model/weights/best.pt` writes `best.onnx` and `best.onnx.json` (size, SHA-256, source checkpoint hash). Dynamic input shape; the backend letterboxes like Ultralytics, which is what makes detections match.
-- Current ONNX artifact: 11,696,862 bytes, sha256 `0e38fc74...c687`, from `best.pt` sha256 `f2e7a74a...ef20`, Ultralytics 8.4.213.
-- Backend config: `MODEL_PATH` now defaults to `ai-model/weights/best.onnx` (previously defaulted to the missing `best.pt`). Verified the backend loads the ONNX model via onnxruntime (`image_size=640`, classes `paper/plastic/metal/organic`) and `/health` reports `model_loaded=true`. `.pt` path remains available via `MODEL_PATH` override.
+- Current ONNX artifact: see `ai-model/weights/best.onnx.json` (size, SHA-256, source checkpoint).
+- Backend config: `MODEL_PATH` defaults to `ai-model/weights/best.onnx` (previously defaulted to the missing `best.pt`). Verified the backend loads the ONNX model via onnxruntime (`image_size=640`, classes `paper/plastic/metal/organic`) and `/health` reports `model_loaded=true`. `.pt` path remains available via `MODEL_PATH` override.
 - Tests: 52 pass, 6 skip without model files (backend/). The parity test passes when given both files.
 - CI lint fix: `ai-model/tests/test_download_datasets.py` and `test_training_checks.py` are Ruff-clean; focused dataset tests pass 26/26, full AI tests pass 109/109, and backend tests pass 52/52 with 6 model-dependent skips.
 

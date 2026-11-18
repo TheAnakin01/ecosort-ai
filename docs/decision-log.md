@@ -117,3 +117,27 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Verified:** The whole notebook ran end to end in a simulated Kaggle setup (stand-in secrets and GPU check, synthetic datasets, 2 epochs on CPU). Not verified: an actual Kaggle session.
 - **Affected:** `ai-model/notebooks/train_ecosort_kaggle.ipynb`, `ai-model/scripts/download_datasets.py`, `ai-model/README.md`.
 - **Migration needed:** No.
+
+
+## 2026-11-16 — Compare run 1 and run 2 before changing the app's model
+
+- **Decision:** Do not merge run 2's `best.zip` into `main` and do not replace `ai-model/weights/best.onnx` yet. First score both models on the same validation photos, leaving out photos run 1 trained on, with `notebooks/compare_models_kaggle.ipynb`. The better model, judged on accuracy per class and on false detections at the app's settings, is then converted to ONNX and committed as `ai-model/weights/best.onnx` with its record.
+- **Reason:** Run 2 scored lower than run 1 (mAP@50-95 0.564 against 0.690), but on its own, harder validation split, so the numbers cannot be compared. Run 2's validation photos can include photos run 1 trained on, because adding a dataset regroups look-alike photos. `.pt` files are kept out of Git by `.gitignore`; only the deployable ONNX model is stored.
+- **Also:** The Kaggle training notebook cloned the `feature/kaggle-training-preparation` branch (from PR #5). It clones `main` again, so runs use the reviewed code. Markdown cells no longer carry an invalid `outputs` field.
+- **Affected:** `ai-model/notebooks/compare_models_kaggle.ipynb`, `ai-model/scripts/make_comparison_split.py`, `ai-model/notebooks/train_ecosort_kaggle.ipynb`, `docs/training-log.md`.
+- **Migration needed:** No.
+
+## 2026-11-16 — Run 2's checkpoint kept in the repo as best.zip
+
+- **Decision (team, PR #6):** Run 2's `best.pt` is stored in `main` as `best.zip` at the top of the repo, to preserve it. This replaces the earlier plan of keeping it on its branch only.
+- **Effect on the app:** none. The backend still serves `ai-model/weights/best.onnx`, which is run 1's model, until the comparison picks a winner.
+- **Comparison notebook:** downloads run 2 from `main` (same file, SHA-256 `e57748e9bdcab9d4d41bda3c0e6b502d5dada0946dc0403c3abf1f74491f6669`), so deleting the `Exit0Hero-patch-1` branch does not break it.
+- **Affected:** `best.zip`, `ai-model/notebooks/compare_models_kaggle.ipynb`.
+
+## 2026-11-17 — The app serves run 2's model
+
+- **Decision:** `ai-model/weights/best.onnx` is now run 2's model (converted from `best.zip`, SHA-256 `e57748e9…`). Run 1's ONNX model stays in Git history at commit `042b1a3`.
+- **Reason:** On 7,501 validation photos neither model trained on, run 2 beat run 1 on every accuracy score (mAP@50-95 0.550 against 0.386, recall 0.622 against 0.466, better AP for every class) and had a lower share of boxes on nothing at the app's settings (5.8% against 7.5%). Organic false detections rose (4.0% to 7.6%). See `training-log.md`.
+- **Checked:** The backend's ONNX detector and the PyTorch model gave the same 555 boxes (same class, IoU above 0.95, confidence gap 0.0000) on the 24 real photos in PR #9; the backend tests and the ONNX parity test pass with it.
+- **Affected:** `ai-model/weights/best.onnx`, `ai-model/weights/best.onnx.json`, `ai-model/notebooks/compare_models_kaggle.ipynb` (run 1 now downloaded from commit `042b1a3`).
+- **Migration needed:** None in the repo. Any running backend loads the model at start-up, so restart or redeploy it to pick up the new file.

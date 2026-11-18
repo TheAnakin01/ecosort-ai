@@ -1,0 +1,98 @@
+{
+  "checked": "2026-11-16T18:13:21+00:00",
+  "weights": "/kaggle/working/models/run1.onnx",
+  "split": "val",
+  "conf": 0.35,
+  "iou": 0.7,
+  "image_size": 640,
+  "images": 7501,
+  "detections": 13951,
+  "on_nothing": 1041,
+  "share_on_nothing": 0.0746,
+  "images_without_labels": 1,
+  "of_which_got_detections": 1,
+  "per_class": {
+    "paper": {
+      "detections": 3192,
+      "correct": 2477,
+      "wrong class": 251,
+      "duplicate": 109,
+      "poor box": 210,
+      "on nothing": 145,
+      "share_correct": 0.776,
+      "share_on_nothing": 0.0454,
+      "labelled": 6461,
+      "missed": 3417,
+      "labelled_as_this_but_called": {
+        "organic": 19,
+        "metal": 332,
+        "plastic": 216
+      }
+    },
+    "plastic": {
+      "detections": 3565,
+      "correct": 2358,
+      "wrong class": 474,
+      "duplicate": 123,
+      "poor box": 205,
+      "on nothing": 405,
+      "share_correct": 0.6614,
+      "share_on_nothing": 0.1136,
+      "labelled": 5478,
+      "missed": 2806,
+      "labelled_as_this_but_called": {
+        "organic": 30,
+        "paper": 154,
+        "metal": 130
+      }
+    },
+    "metal": {
+      "detections": 3878,
+      "correct": 2468,
+      "wrong class": 529,
+      "duplicate": 104,
+      "poor box": 419,
+      "on nothing": 358,
+      "share_correct": 0.6364,
+      "share_on_nothing": 0.0923,
+      "labelled": 4789,
+      "missed": 1982,
+      "labelled_as_this_but_called": {
+        "plastic": 245,
+        "organic": 2,
+        "paper": 92
+      }
+    },
+    "organic": {
+      "detections": 3316,
+      "correct": 2868,
+      "wrong class": 51,
+      "duplicate": 76,
+      "poor box": 188,
+      "on nothing": 133,
+      "share_correct": 0.8649,
+      "share_on_nothing": 0.0401,
+      "labelled": 7616,
+      "missed": 4663,
+      "labelled_as_this_but_called": {
+        "metal": 67,
+        "paper": 5,
+        "plastic": 13
+      }
+    }
+  },
+  "example_photos": [
+    "/kaggle/working/run1_false_detections/worst_photos/neat-now__train_009765_jpg.rf.9c3c0ccdbc52e5412509752c79a7e435.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/neat-now__train_009765_jpg.rf.5f2cd7f06e52612b491e816861bb9731.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/neat-now__train_006160_jpg.rf.f8c551371b30233cac3715a6993a19ec.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__glass1202_jpg.rf.89f3e6056d89a13d800e1dbbf0ed406b.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__glass404_jpg.rf.d4cae40f56114bc9513fa04eca488cd0.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__glass409_jpg.rf.8fa3b1046f243ac29747b10e9b2169b6.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__glass717_jpg.rf.07cb7d302e6cc8ca3bc17f4b1f197a8e.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__metal238_jpg.rf.05ab7d538a51caa22cc3b582f21b28ee.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/neat-now__train_001231_jpg.rf.67cc1d6e45f1b9e5f405211d3a2fbbeb.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/neat-now__train_006160_jpg.rf.66f8d4492a6f7394be4a38b52903cf89.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__glass1202_jpg.rf.732c54f12a710e09804af1b37a73051a.jpg",
+    "/kaggle/working/run1_false_detections/worst_photos/garbage-cls-3__glass1669_jpg.rf.b3abe337a37f3801a3f23f75276931ca.jpg"
+  ]
+}

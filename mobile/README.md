@@ -54,7 +54,19 @@ npm test
 
 ## Building an APK
 
-Use EAS Build: `npx eas-cli@latest build -p android --profile preview`. A release APK blocks plain `http://` addresses, so deploy the backend with `https://` first and set `EXPO_PUBLIC_API_URL` to that address.
+`eas.json` has two profiles. Both point the app at the hosted backend (`https://ecosort-ai-srujan26.onrender.com`); change `EXPO_PUBLIC_API_URL` there if your Render address differs.
+
+- `preview`: an installable `.apk` for testing and the demo.
+- `production`: an `.aab` for the Play Store.
+
+Steps, from the `mobile/` folder on a laptop with Node installed:
+
+1. Create a free account at expo.dev.
+2. `npx eas-cli@latest login`
+3. `npx eas-cli@latest build -p android --profile preview`. The first time it asks to create a project and an Android signing key: answer yes to both.
+4. The build runs on Expo's servers (about 10 to 20 minutes on the free tier, sometimes longer in a queue). It ends with a link and a QR code. Open it on the phone, download the APK and install it (allow "install unknown apps" when asked).
+
+A release APK blocks plain `http://` addresses, which is why the backend must be on `https://`.
 
 ## Notes
 
