@@ -30,17 +30,17 @@ CONFIG_PATH = AI_MODEL_DIR / "configs" / "datasets.yaml"
 MANIFEST_NAME = "download_manifest.json"
 
 # Fallback list used when configs/datasets.yaml does not exist. Kept in step
-# with notebooks/train_ecosort.ipynb.
+# with notebooks/train_ecosort.ipynb and configs/datasets.yaml.
 FALLBACK_DATASETS = [
-    ("trash-detection", "amongus-o6ilp", "trash-detection-1fjjc-ipij8", None),
+    ("trash-detection", "amongus-o6ilp", "trash-detection-1fjjc-ipij8", 1),
     (
         "trashnet",
         "polygence-project",
         "trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection",
-        None,
+        20,
     ),
-    ("neat-now", "fyp-gojku", "neat-now", None),
-    ("garbage-cls-3", "objectdetection-z2zn1", "garbage-classification-3-bjcgp", None),
+    ("neat-now", "fyp-gojku", "neat-now", 10),
+    ("garbage-cls-3", "objectdetection-z2zn1", "garbage-classification-3-bjcgp", 5),
 ]
 
 # Backward-compatible alias: (folder, workspace, project) tuples, version omitted.

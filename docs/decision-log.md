@@ -88,6 +88,13 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Affected:** `ai-model/scripts/prepare_dataset.py`, the notebook, `ai-model/README.md`.
 - **Migration needed:** No.
 
+## 2026-11-18 — Serve the committed ONNX artifact by default
+
+- **Decision:** The backend's default `MODEL_PATH` is now `ai-model/weights/best.onnx` (was `best.pt`, which does not exist locally). `.env.example` updated to match. The `.pt`/`.onnx` dispatch in `detector.py` is unchanged: `.onnx` loads via onnxruntime, `.pt` via Ultralytics.
+- **Reason:** Only `best.onnx` (sha256 `0e38fc74...`, from run `ecosort-baseline-2`, best.pt sha256 `f2e7a74a...`) is committed. Defaulting to the missing `best.pt` left the backend unable to load its model (`/health` reported `model_loaded=false`, `/api/v1/detect` returned 503). Verified: `OnnxDetector` loads `best.onnx`, `image_size=640`, classes `paper/plastic/metal/organic`; backend tests 52 passed/6 skipped, ruff clean, pip clean.
+- **Affected:** `backend/app/config.py`, `backend/.env.example`
+- **Migration needed:** No. API contract unchanged.
+
 ## 2026-11-15 — Train on Kaggle when Colab's GPU is unavailable
 
 - **Decision:** Add a Kaggle notebook (`ai-model/notebooks/train_ecosort_kaggle.ipynb`) that runs the same build and training without anyone watching.
