@@ -43,7 +43,8 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - name: Show which server the app will use
-        run: echo "Backend: $EXPO_PUBLIC_API_URL"
+        run: |
+          echo "Backend: $EXPO_PUBLIC_API_URL"
       - run: npm ci
       - run: npm test
       - name: Generate the Android project
