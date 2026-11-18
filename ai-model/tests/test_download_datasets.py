@@ -76,9 +76,10 @@ def test_load_dataset_config_returns_all_four_datasets():
     config = load_dataset_config()
     folders = [entry["folder"] for entry in config]
     assert folders == ["trash-detection", "trashnet", "neat-now", "garbage-cls-3"]
+    expected_versions = {"trash-detection": 1, "trashnet": 20, "neat-now": 10, "garbage-cls-3": 5}
     for entry in config:
         assert set(entry) >= {"folder", "workspace", "project", "version"}
-        assert entry["version"] is None
+        assert entry["version"] == expected_versions[entry["folder"]]
 
 
 def test_find_version_picks_requested_version():
