@@ -39,6 +39,8 @@ class Settings:
     max_image_side: int
     max_image_pixels: int
     cors_origins: list[str]
+    rate_limit_per_minute: int
+    trust_proxy_headers: bool
 
     def validate(self) -> None:
         def check(condition: bool, message: str) -> None:
@@ -61,6 +63,7 @@ class Settings:
         check(self.max_image_side >= 32, "MAX_IMAGE_SIDE must be at least 32")
         check(self.max_image_pixels >= 32 * 32, "MAX_IMAGE_MEGAPIXELS is too small")
         check(bool(self.model_version.strip()), "MODEL_VERSION must not be empty")
+        check(self.rate_limit_per_minute >= 0, "RATE_LIMIT_PER_MINUTE must be 0 (off) or more")
 
 
 def _number(name: str, default: str, kind: type):
@@ -98,6 +101,10 @@ def load_settings() -> Settings:
         max_image_side=_number("MAX_IMAGE_SIDE", "6000", int),
         max_image_pixels=_number("MAX_IMAGE_MEGAPIXELS", "24", int) * 1_000_000,
         cors_origins=[o.strip() for o in os.getenv("CORS_ORIGINS", DEFAULT_CORS_ORIGINS).split(",") if o.strip()],
+        # Scans allowed per client IP per minute; 0 turns the limit off.
+        rate_limit_per_minute=_number("RATE_LIMIT_PER_MINUTE", "60", int),
+        # Only turn on behind a proxy that sets X-Forwarded-For (Render does).
+        trust_proxy_headers=os.getenv("TRUST_PROXY_HEADERS", "false").strip().lower() in {"1", "true", "yes"},
     )
     settings.validate()
     return settings
