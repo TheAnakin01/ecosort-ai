@@ -13,6 +13,7 @@ class ApiError(Exception):
         self.status_code = status_code
         self.code = code
         self.message = message
+        self.headers: dict[str, str] = {}
 
 
 def empty_file() -> ApiError:
@@ -49,3 +50,10 @@ def inference_timeout() -> ApiError:
 
 def unknown_category(name: str) -> ApiError:
     return ApiError(404, "UNKNOWN_CATEGORY", f"Unknown category: {name}")
+
+
+def rate_limited(retry_after: float) -> ApiError:
+    seconds = max(int(retry_after + 0.999), 1)
+    error = ApiError(429, "RATE_LIMITED", f"Too many scans in a short time. Try again in {seconds} seconds.")
+    error.headers = {"Retry-After": str(seconds)}
+    return error

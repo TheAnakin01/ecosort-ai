@@ -27,6 +27,7 @@ from . import config, errors
 from .detector import YoloDetector, load_detector
 from .errors import ApiError
 from .guidance import DISCLAIMER, GUIDANCE, NO_DETECTIONS_MESSAGE, UNCERTAIN_MESSAGE
+from .rate_limit import RateLimiter, client_key
 from .schemas import (
     CategoriesResponse,
     Category,
@@ -47,6 +48,7 @@ async def lifespan(app: FastAPI):
     if not logging.getLogger().handlers:
         logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
     app.state.detector = load_detector(config.settings)
+    app.state.rate_limiter = RateLimiter(config.settings.rate_limit_per_minute)
     yield
     app.state.detector = None
 
@@ -96,7 +98,9 @@ async def add_request_id(request: Request, call_next):
 
 @app.exception_handler(ApiError)
 async def handle_api_error(request: Request, exc: ApiError) -> JSONResponse:
-    return error_response(request, exc.status_code, exc.code, exc.message)
+    response = error_response(request, exc.status_code, exc.code, exc.message)
+    response.headers.update(exc.headers)
+    return response
 
 
 @app.exception_handler(RequestValidationError)
@@ -197,6 +201,11 @@ async def detect(
     request: Request, file: UploadFile, detector: YoloDetector = Depends(get_detector)
 ) -> DetectResponse:
     settings = config.settings
+    limiter = getattr(request.app.state, "rate_limiter", None)
+    if limiter is not None:
+        wait = limiter.check(client_key(request))
+        if wait is not None:
+            raise errors.rate_limited(wait)
     # Read one byte past the limit: enough to know the upload is too large
     # without holding an unlimited amount in memory.
     image = read_image(await file.read(settings.max_upload_bytes + 1))

@@ -1,6 +1,6 @@
 # AI handoff — whole project
 
-Last updated: 2026-11-17. Read `CLAUDE.md`, `AGENTS.md` and `docs/decision-log.md` first.
+Last updated: 2026-11-18. Read `CLAUDE.md`, `AGENTS.md` and `docs/decision-log.md` first.
 
 ## Project overview (read this first)
 
@@ -12,13 +12,19 @@ EcoSort AI detects several waste items in one photo and labels each as paper, pl
 - **The model in the repo (`ai-model/weights/best.onnx`) is run 2** (11,125,532 bytes, sha256 `089400a8...9d8b`, from `best.zip`, Ultralytics 8.4.214), merged in PR #10. Backend ONNX and PyTorch detectors agree on 24 real photos (555/555 boxes).
 - Backend complete against the API spec; runs `.pt` or `.onnx`. Mobile app: Home, Scan, Results (boxes), History (on-device), Learn; web build on GitHub Pages (last deployed 2026-11-14; later commits did not touch `mobile/`). CI passing on `main` as of 2026-11-16.
 
+### Added 2026-11-18 (branch `feature/finish-mvp`)
+- Backend rate limit on `/api/v1/detect`: 60 scans per minute per client IP (`RATE_LIMIT_PER_MINUTE`, 0 = off), 429 `RATE_LIMITED` with `Retry-After`. Behind Render, `TRUST_PROXY_HEADERS=true` uses the last `X-Forwarded-For` entry. Not verified on Render whether that entry is the visitor or a shared proxy; if many users get 429 together, set `RATE_LIMIT_PER_MINUTE=0` in the Render dashboard.
+- `mobile/eas.json`: `preview` builds an APK, `production` an AAB, both pointing at `https://ecosort-ai-srujan26.onrender.com`. Steps in `mobile/README.md`.
+- `ai-model/scripts/tune_thresholds.py`: sweeps confidence on the validation split and recommends both thresholds.
+- `docs/KNOWN_LIMITATIONS.md`: release notes, limitations, privacy, demo script.
+- `docs/implementation/EXECUTION_TRACKER.md` corrected (it predated run 2 and the deployment).
+
 ### Not done (in priority order)
-1. **Host the backend over HTTPS** (`render.yaml` is ready: Render dashboard, New, Blueprint, pick this repo; then copy the service URL into repo variable `API_URL`) (laptop + tunnel for the demo, or a free host), then set repo variable `API_URL` and re-run "Deploy web app". Nothing is hosted as far as this file knows; the web link cannot scan until then. `backend/Dockerfile` has never been built.
-2. Test run 2 on your own phone photos (my 3-stock-image test on run 1 labelled almost everything plastic; not re-run on run 2).
-3. Possible run 3: 50-100 own annotated photos; check the licences of the remaining datasets.
-4. Tune confidence thresholds on validation; score the test split once.
-5. Build the Android APK (Expo EAS, needs the https backend) and test on a physical phone.
-6. Rate limiting, LICENSE (Ultralytics is AGPL-3.0), municipal check of sorting tips.
+1. Confirm one real scan on the hosted web app (backend is live; `API_URL` set 2026-11-17).
+2. Build the APK (`mobile/README.md`), install it, scan on a phone. Check the Render address in `eas.json` matches yours.
+3. Kaggle: run `tune_thresholds.py` on the validation split, set the two thresholds in `render.yaml`, then score the test split once with `evaluate.py --split test`. Record both in `docs/training-log.md`.
+4. Test on 20-30 own phone photos; optional run 3 with own annotated photos.
+5. Confirm three dataset licences; add a LICENSE file (team decision; Ultralytics is AGPL-3.0).
 
 ### Backend details
 
