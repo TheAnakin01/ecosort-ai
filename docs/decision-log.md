@@ -88,6 +88,26 @@ Approved project decisions, newest last. These rank above the documentation pack
 - **Affected:** `ai-model/scripts/prepare_dataset.py`, the notebook, `ai-model/README.md`.
 - **Migration needed:** No.
 
+## 2026-11-18 — Pin all four Roboflow dataset versions for rebuild
+
+- **Decision:** Pin exact Roboflow versions for the 4-source rebuild: `trash-detection` v1, `trashnet` v20, `neat-now` v10, `garbage-cls-3` v5. Versions verified via Roboflow API on 2026-11-18 and recorded in `ai-model/configs/datasets.yaml`. Do not silently update.
+- **Reason:** `ecosort-baseline-2` did not record source versions. `trash-detection` has only v1; `garbage-cls-3` v5 matches the prior decision log. For `trashnet` (18 versions available) and `neat-now` (8 available), newest available versions were pinned for a clean, reproducible rebuild because historical versions were unknown. All are object-detection projects.
+- **Affected:** `ai-model/configs/datasets.yaml`, `ai-model/scripts/download_datasets.py` (fallback defaults), `ai-model/tests/test_download_datasets.py`, `docs/dataset-card.md`.
+- **Migration needed:** No. Dataset must be rebuilt and model retrained.
+
+## 2026-11-18 — Record dataset licenses as unresolved for internal prep
+
+- **Decision:** Proceed with dataset download and internal training preparation while recording licenses accurately. TrashNet CC BY 4.0 (confirmed 2026-11-14 on source page). Trash Detection, Neat Now, and the `garbage-cls-3` copy (objectdetection-z2zn1) have UNKNOWN licenses; the original material-identification copy is CC BY 4.0 but a copy does not automatically inherit that license.
+- **Reason:** Licenses cannot be fully verified without Roboflow page access in this environment; user approved proceeding for internal research/training preparation only.
+- **Constraint:** Never mark unknown licenses as verified. Do not claim the dataset is cleared for commercial use, public redistribution, or competition submission. Source and copy-license uncertainty recorded separately.
+- **Affected:** `docs/dataset-card.md`.
+- **Migration needed:** No. License verification remains required before submission.
+
+- **Decision:** The backend's default `MODEL_PATH` is now `ai-model/weights/best.onnx` (was `best.pt`, which does not exist locally). `.env.example` updated to match. The `.pt`/`.onnx` dispatch in `detector.py` is unchanged: `.onnx` loads via onnxruntime, `.pt` via Ultralytics.
+- **Reason:** Only `best.onnx` (sha256 `0e38fc74...`, from run `ecosort-baseline-2`, best.pt sha256 `f2e7a74a...`) is committed. Defaulting to the missing `best.pt` left the backend unable to load its model (`/health` reported `model_loaded=false`, `/api/v1/detect` returned 503). Verified: `OnnxDetector` loads `best.onnx`, `image_size=640`, classes `paper/plastic/metal/organic`; backend tests 52 passed/6 skipped, ruff clean, pip clean.
+- **Affected:** `backend/app/config.py`, `backend/.env.example`
+- **Migration needed:** No. API contract unchanged.
+
 ## 2026-11-15 — Train on Kaggle when Colab's GPU is unavailable
 
 - **Decision:** Add a Kaggle notebook (`ai-model/notebooks/train_ecosort_kaggle.ipynb`) that runs the same build and training without anyone watching.

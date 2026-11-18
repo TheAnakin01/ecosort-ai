@@ -82,7 +82,7 @@ def _image_size() -> int | None:
 
 def load_settings() -> Settings:
     settings = Settings(
-        model_path=Path(os.getenv("MODEL_PATH", REPO_ROOT / "ai-model" / "weights" / "best.pt")),
+        model_path=Path(os.getenv("MODEL_PATH", REPO_ROOT / "ai-model" / "weights" / "best.onnx")),
         model_name=os.getenv("MODEL_NAME", "yolo-nano-waste-detector"),
         model_version=os.getenv("MODEL_VERSION", "baseline"),
         # Detections below this confidence are not returned at all.

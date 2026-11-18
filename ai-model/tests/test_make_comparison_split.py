@@ -44,7 +44,8 @@ def test_leaves_out_photos_the_other_model_trained_on(tmp_path):
     kept = sorted(p.name for p in (out / "images" / "val").iterdir())
     assert kept == ["garbage-cls-3__c.jpg", "trashnet__a.jpg"]
     assert sorted(p.name for p in (out / "labels" / "val").iterdir()) == ["garbage-cls-3__c.txt", "trashnet__a.txt"]
-    assert (out / "images" / "val" / "trashnet__a.jpg").is_symlink()
+    # Images are linked when symlinks are supported, copied otherwise (Windows without privilege).
+    assert (out / "images" / "val" / "trashnet__a.jpg").is_file()
 
     summary = json.loads((out / "comparison_split.json").read_text())
     assert (summary["validation_photos"], summary["left_out_seen_in_training"], summary["kept"]) == (3, 1, 2)
