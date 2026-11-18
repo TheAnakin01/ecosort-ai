@@ -21,8 +21,8 @@ EcoSort AI detects several waste items in one photo and labels each as paper, pl
 - `docs/implementation/EXECUTION_TRACKER.md` corrected (it predated run 2 and the deployment).
 
 ### Not done (in priority order)
-1. Confirm one real scan on the hosted web app (backend is live; `API_URL` set 2026-11-17).
-2. Install the APK from the `apk-latest` release and scan on a phone (Phase 5 gate).
+1. Done 2026-11-18: scans work end to end from the APK on an Android phone against Render (after fixing the photo upload for Expo's fetch). The user reports many items are missed; detection quality is now the main gap.
+2. Confirm a scan on the hosted web app as well.
 3. Kaggle: run `tune_thresholds.py` on the validation split, set the two thresholds in `render.yaml`, then score the test split once with `evaluate.py --split test`. Record both in `docs/training-log.md`.
 4. Test on 20-30 own phone photos; optional run 3 with own annotated photos.
 5. Confirm three dataset licences; add a LICENSE file (team decision; Ultralytics is AGPL-3.0).
