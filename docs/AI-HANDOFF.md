@@ -9,6 +9,7 @@ Last updated: 2026-11-15. Read `CLAUDE.md`, `AGENTS.md` and `docs/decision-log.m
 - Two inference paths, chosen by `MODEL_PATH` extension: `.pt` (Ultralytics, `requirements.txt`) and `.onnx` (onnxruntime, `requirements-onnx.txt`, no PyTorch). Details and measurements: decision log, 2026-11-15.
 - ONNX export: `python ai-model/scripts/export_onnx.py --weights ai-model/weights/best.pt` writes `best.onnx` and `best.onnx.json` (size, SHA-256, source checkpoint hash). Dynamic input shape; the backend letterboxes like Ultralytics, which is what makes detections match.
 - Current ONNX artifact: 11,696,862 bytes, sha256 `0e38fc74...c687`, from `best.pt` sha256 `f2e7a74a...ef20`, Ultralytics 8.4.213.
+- Backend config: `MODEL_PATH` now defaults to `ai-model/weights/best.onnx` (previously defaulted to the missing `best.pt`). Verified the backend loads the ONNX model via onnxruntime (`image_size=640`, classes `paper/plastic/metal/organic`) and `/health` reports `model_loaded=true`. `.pt` path remains available via `MODEL_PATH` override.
 - Tests: 52 pass, 6 skip without model files (backend/). The parity test passes when given both files.
 - CI lint fix: `ai-model/tests/test_download_datasets.py` and `test_training_checks.py` are Ruff-clean; focused dataset tests pass 26/26, full AI tests pass 109/109, and backend tests pass 52/52 with 6 model-dependent skips.
 
