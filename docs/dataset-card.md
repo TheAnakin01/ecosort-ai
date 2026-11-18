@@ -7,19 +7,24 @@ The numbers below come from that build's `dataset_report.json`. Where something 
 
 ## Sources
 
+### `ecosort-baseline-2` build (2026-11-15, historical — 3 sources)
+
 | Dataset | Link | Version | License | Downloaded on |
 |---------|------|---------|---------|---------------|
 | Trash Detection (`trash-detection`) | https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8 | Newest at download; **not recorded** | UNKNOWN — not checked | 2026-11-15 |
 | TrashNet: annotated images of trash (`trashnet`) | https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | Newest at download; **not recorded** | CC BY 4.0 (per its Roboflow page, read 2026-11-14) | 2026-11-15 |
 | Neat Now (`neat-now`) | https://universe.roboflow.com/fyp-gojku/neat-now | Newest at download; **not recorded** | UNKNOWN — not checked | 2026-11-15 |
 
-### Added for the next build (2026-11-15)
+### Current build preparation (2026-11-18, 4 sources — pinned)
 
-Not in the dataset above. The next build and training run will include it.
+Versions verified via Roboflow API on 2026-11-18 and pinned in `ai-model/configs/datasets.yaml`. Do not silently update.
 
-| Dataset | Link | Version | License | Downloaded on |
-|---------|------|---------|---------|---------------|
-| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp | 5 | UNKNOWN for this copy — not checked. The original it copies, [material-identification/garbage-classification-3](https://universe.roboflow.com/material-identification/garbage-classification-3), is CC BY 4.0 with classes biodegradable, cardboard, glass, metal, paper, plastic | 2026-11-15 |
+| Dataset | Link | Pinned version | License | Status |
+|---------|------|----------------|---------|--------|
+| Trash Detection (`trash-detection`) | https://universe.roboflow.com/amongus-o6ilp/trash-detection-1fjjc-ipij8 | **v1** (only available) | UNKNOWN — not checked on Roboflow page | Not cleared for commercial use, public redistribution, or competition submission |
+| TrashNet: annotated images of trash (`trashnet`) | https://universe.roboflow.com/polygence-project/trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | **v20** (newest of 18 available) | CC BY 4.0 (per its Roboflow page, read 2026-11-14) | License confirmed on source page; verify terms before submission |
+| Neat Now (`neat-now`) | https://universe.roboflow.com/fyp-gojku/neat-now | **v10** (newest of 8 available) | UNKNOWN — not checked on Roboflow page | Not cleared for commercial use, public redistribution, or competition submission |
+| GARBAGE CLASSIFICATION 3 (`garbage-cls-3`) | https://universe.roboflow.com/objectdetection-z2zn1/garbage-classification-3-bjcgp | **v5** (newest of 5 available) | UNKNOWN for this copy — not checked. The original it copies, [material-identification/garbage-classification-3](https://universe.roboflow.com/material-identification/garbage-classification-3), is CC BY 4.0, but **a copied dataset does not automatically inherit the original's license** | Copy-license uncertainty recorded separately; not cleared for commercial use, public redistribution, or competition submission |
 
 The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no downloadable version on Roboflow, so this copy was used instead.
 
@@ -42,16 +47,7 @@ reads this manifest and records `source_versions` in
 `datasets/ecosort/dataset_report.json`, so every build record shows exactly
 which dataset versions were used.
 
-**Current state:** All four dataset versions are unpinned (`version: null`) in
-`configs/datasets.yaml`. None of the version numbers have been confirmed against
-live Roboflow projects (no Roboflow API credentials are available in this
-environment, and Roboflow Universe pages are not accessible). Do not guess
-version numbers. Before a submission run:
-
-1. Run the notebook once and read each dataset's actual version from the cell
-   output and from `downloads/download_manifest.json`.
-2. Enter those version numbers in `configs/datasets.yaml`.
-3. Record them in the version table below.
+**Current state (2026-11-18):** All four dataset versions are **pinned** in `configs/datasets.yaml` (trash-detection v1, trashnet v20, neat-now v10, garbage-cls-3 v5) based on Roboflow API availability checks on 2026-11-18. For trashnet and neat-now, the versions used in `ecosort-baseline-2` were not recorded, so the newest available versions at rebuild time were pinned for reproducibility of the new build. Do not silently update pinned versions.
 
 Never assume a dataset is commercially usable without evidence. Licenses marked
 UNKNOWN must be checked on each dataset's Roboflow page before the model is
@@ -88,6 +84,8 @@ copy's own license must be checked separately.
 Share of boxes: paper 28%, plastic 30%, metal 25%, organic 17%. Organic is the smallest class but is not rare.
 
 ## How it was built
+
+### `ecosort-baseline-2` (2026-11-15, historical)
 
 ```
 python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet downloads/neat-now --resplit
