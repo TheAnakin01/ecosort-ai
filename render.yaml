@@ -1,0 +1,21 @@
+# Render Blueprint: deploys the backend from backend/Dockerfile.
+# Free instances have 512 MB RAM and sleep after about 15 minutes idle.
+services:
+  - type: web
+    name: ecosort-ai-srujan26
+    runtime: docker
+    plan: free
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      # Keeps peak memory under the free instance's 512 MB (measured 360 MB at 12 MP).
+      - key: MAX_IMAGE_MEGAPIXELS
+        value: "12"
+      # Render's proxy sets X-Forwarded-For; needed for per-client rate limits.
+      - key: TRUST_PROXY_HEADERS
+        value: "true"
+      - key: RATE_LIMIT_PER_MINUTE
+        value: "60"
+      - key: MODEL_VERSION
+        value: run2
