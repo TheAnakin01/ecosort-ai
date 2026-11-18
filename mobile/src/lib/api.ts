@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { uploadPart } from './upload-part';
 import type { Category, DetectResponse, Guidance, Photo } from './types';
 
 // Set EXPO_PUBLIC_API_URL in mobile/.env. On a real phone "localhost" means
@@ -72,17 +73,7 @@ async function request(path: string, init?: RequestInit, timeoutMs = TIMEOUT_MS)
 
 async function buildUpload(photo: Photo): Promise<FormData> {
   const form = new FormData();
-  if (Platform.OS === 'web') {
-    const file = photo.file ?? (await (await fetch(photo.uri)).blob());
-    form.append('file', file, photo.fileName ?? 'photo.jpg');
-  } else {
-    // React Native uploads a local file when given its uri, name and type.
-    form.append('file', {
-      uri: photo.uri,
-      name: photo.fileName ?? 'photo.jpg',
-      type: photo.mimeType ?? 'image/jpeg',
-    } as unknown as Blob);
-  }
+  form.append('file', await uploadPart(photo), photo.fileName ?? 'photo.jpg');
   return form;
 }
 
