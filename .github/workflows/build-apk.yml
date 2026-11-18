@@ -5,7 +5,8 @@
 # phones by hand (demo, testing) but not for the Play Store; use EAS for that.
 #
 # Run it from the Actions tab ("Build Android APK", "Run workflow"), then
-# download "ecosort-apk" from the finished run's Artifacts section.
+# download it from the "Android APK (latest build)" release (direct .apk link,
+# easiest on a phone) or from the run's Artifacts section (a zip).
 
 name: Build Android APK
 
@@ -14,6 +15,9 @@ on:
   push:
     branches: [feature/finish-mvp]
     paths: ["mobile/**", ".github/workflows/build-apk.yml"]
+
+permissions:
+  contents: write  # to publish the APK as a release
 
 jobs:
   apk:
@@ -55,3 +59,12 @@ jobs:
           name: ecosort-apk
           path: apk/*.apk
           retention-days: 30
+      - name: Publish as the "apk-latest" release (direct download link)
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete apk-latest --yes --cleanup-tag 2>/dev/null || true
+          gh release create apk-latest apk/*.apk --prerelease --target "$GITHUB_SHA" \
+            --title "Android APK (latest build)" \
+            --notes "Debug-signed test build from ${GITHUB_SHA::7}. Backend: $EXPO_PUBLIC_API_URL. Install by opening the .apk on the phone and allowing installs from this source."
