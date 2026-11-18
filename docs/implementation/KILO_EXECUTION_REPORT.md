@@ -56,40 +56,53 @@ All baseline checks were executed successfully with `.venv\Scripts\python.exe`.
 |------|--------|--------|
 | `backend/app/config.py:82` | Default `MODEL_PATH` `best.pt` → `best.onnx` | Backend could not load its model; only `best.onnx` exists locally |
 | `backend/.env.example:11` | `MODEL_PATH` example `best.pt` → `best.onnx` (uncommented) | Match the deployed ONNX artifact; avoid confusion |
+| `ai-model/configs/datasets.yaml` | Pin versions: trash-detection v1, trashnet v20, neat-now v10, garbage-cls-3 v5 | Reproducible dataset rebuild |
+| `ai-model/scripts/download_datasets.py` | Fallback defaults updated to match pinned versions | Config consistency |
+| `ai-model/tests/test_download_datasets.py` | Version assertions updated for pinned versions | Test consistency |
+| `ai-model/scripts/make_comparison_split.py` | Fall back to `shutil.copy2` when `os.symlink` fails (Windows privilege) | CI/test compatibility on Windows |
+| `ai-model/tests/test_make_comparison_split.py` | Accept linked-or-copied files instead of asserting symlink | Test compatibility on Windows |
+| `ai-model/notebooks/train_ecosort_kaggle.ipynb` | Branch target: `feature/production-readiness-roadmap` (not `main`) | Kaggle training uses current branch for rebuild |
+| `docs/dataset-card.md` | Pinned versions + license recording section updated | Dataset provenance documentation |
+| `docs/decision-log.md` | Added version-pinning + license decisions (2026-11-18) | Decision record |
+| `docs/AI-HANDOFF.md` | Merged main updates + `MODEL_PATH`/`best.onnx.json` notes | Handoff documentation |
+| `.env.example` | Created root placeholder `ROBOFLOW_API_KEY=` | Credential setup documentation |
 
-No other source files changed. No model artifacts deleted or overwritten. `best.onnx` backed up in place (still present, sha256 `0e38fc74c6f5f6d1cc1fb67314191f4a4124fba4874b4310c24375177e7dc687`).
+No model artifacts deleted or overwritten. `best.onnx` backed up in place (still present, sha256 `0e38fc74c6f5f6d1cc1fb67314191f4a4124fba4874b4310c24375177e7dc687`).
 
 ---
 
-## 5. Dataset sources and versions (from docs/dataset-card.md, decision-log.md)
+## 5. Dataset sources and versions (pinned 2026-11-18 via Roboflow API)
 
-All four versions are currently **unpinned** (`version: null`) in `ai-model/configs/datasets.yaml`. None confirmed against live Roboflow (no credentials, Roboflow pages return 403 in this environment).
+Versions verified via Roboflow API on 2026-11-18 and pinned in `ai-model/configs/datasets.yaml`.
 
-| Folder | Workspace | Project | Version | License |
-|--------|-----------|---------|---------|---------|
-| trash-detection | amongus-o6ilp | trash-detection-1fjjc-ipij8 | null (unpinned) | UNKNOWN |
-| trashnet | polygence-project | trashnet-...-object-detection | null (unpinned) | CC BY 4.0 (confirmed 2026-11-14) |
-| neat-now | fyp-gojku | neat-now | null (unpinned) | UNKNOWN |
-| garbage-cls-3 | objectdetection-z2zn1 | garbage-classification-3-bjcgp | 5 (per decision log) | UNKNOWN for the copy |
+| Folder | Workspace | Project | Pinned version | License |
+|--------|-----------|---------|----------------|---------|
+| trash-detection | amongus-o6ilp | trash-detection-1fjjc-ipij8 | **v1** (only available) | UNKNOWN — not checked on Roboflow page |
+| trashnet | polygence-project | trashnet-a-set-of-annotated-images-of-trash-that-can-be-used-for-object-detection | **v20** (newest of 18 available) | CC BY 4.0 (confirmed on Roboflow page 2026-11-14) |
+| neat-now | fyp-gojku | neat-now | **v10** (newest of 8 available) | UNKNOWN — not checked on Roboflow page |
+| garbage-cls-3 | objectdetection-z2zn1 | garbage-classification-3-bjcgp | **v5** (newest of 5 available) | UNKNOWN for this copy — not checked |
 
-The training run `ecosort-baseline-2` was built from the first **three** sources (trash-detection, trashnet, neat-now); GARBAGE CLASSIFICATION 3 was added for the *next* build and is **not** in `ecosort-baseline-2`'s dataset.
+The copy first chosen (ginas-workspace/garbage-classification-3-p5ly0) has no downloadable version on Roboflow, so the objectdetection-z2zn1 copy was used instead.
 
-Known class-mapping fixes already in `class_overrides.yaml`:
-- `disposable food container: drop` (was wrongly `organic`)
-- `foam food container: drop` (was wrongly `organic`)
-- `cardboard: paper`
-- Suggested but undecided: `food can: metal`, `pop tab: metal`, `pizza box: paper`, `toilet tube: paper`, `single-use carrier bag: plastic`, `polypropylene bag: plastic`, `foam cup: plastic`
-- Worth second look: `paper cup`, `drink carton`, `aluminium blister pack` (currently included, mixed materials)
+Licenses marked UNKNOWN must not be treated as verified. Dataset not cleared for commercial use, public redistribution, or competition submission until licenses confirmed.
 
-Historical dataset stats (from `ecosort-baseline-2` build, NOT recomputed locally): 22,199 images, 49,385 boxes; train 15,518 / val 4,525 / test 2,156; paper 13,899 / plastic 14,865 / metal 12,340 / organic 8,281; 47,366 boxes dropped; 18,408 images skipped; 596 identical removed; 585 duplicates with differing labels (first copy kept); 7 repeated boxes; 1 invalid box.
+**Download status (in progress):**
+- `roboflow~=1.7.3` installed in `.venv`
+- `trashnet` v20: complete (~248 MB, 12,083 files extracted)
+- `neat-now` v10: complete (~2 GB, 64,763 files extracted)
+- `garbage-cls-3` v5: downloading (~68% of 2.7 GB)
+- `trash-detection` v1: pending (sequential after garbage-cls-3)
+- `downloads/download_manifest.json` will be written by the downloader when complete
+
+**Download runs in background** (key read from root `.env`, never logged/exposed).
+
+The training run `ecosort-baseline-2` was built from the first three sources (trash-detection, trashnet, neat-now); GARBAGE CLASSIFICATION 3 was added for this rebuild.
 
 ---
 
 ## 6. Dataset statistics
 
-Could not be recomputed locally: no `datasets/` or `downloads/` directory exists, and the four Roboflow sources cannot be downloaded without a Roboflow API key. The historical figures above are from the `ecosort-baseline-2` build and are recorded as such, not claimed as current.
-
----
+Cannot be computed yet — download still in progress (garbage-cls-3 at ~68%, trash-detection pending). Historical figures from `ecosort-baseline-2` build are in section 5 above and will be replaced once the new merged dataset is built and validated. Per-class box counts, split distribution, duplicate-conflict statistics, and annotation quality will be reported once `validate_dataset.py` passes.
 
 ## 7. Training configuration (existing run `ecosort-baseline-2`, the only recorded run)
 
@@ -113,25 +126,19 @@ Validation metrics (from `docs/training-log.md`):
 
 Notes from the run: still improving when stopped (mAP@50 0.775→0.788 over epochs 26–29); no test-split score; no confusion-matrix review; thresholds untuned (0.35 / 0.50); two container classes mislabeled as organic in the training data.
 
-No `best.pt`, `results.csv`, `args.yaml`, `events.out.tfevents*`, or run logs exist locally — only the exported `best.onnx` and its JSON provenance. Provenance beyond `docs/training-log.md`/`dataset-card.md` cannot be recovered locally.
-
----
+No `best.pt`, `results.csv`, `args.yaml`, `events.out.tfevents*`, or run logs exist locally — only the exported `best.onnx` and its JSON provenance.
 
 ## 8. Training results
 
-Only the historical `ecosort-baseline-2` validation results above exist. **No new training was performed** (see blockers, section 13). No new metrics can be claimed.
-
----
+Only the historical `ecosort-baseline-2` validation results above exist. **No new training was performed.** No new metrics can be claimed.
 
 ## 9. Validation results
 
-As section 8: historical validation only (`ecosort-baseline-2`). No held-out test score was ever recorded. The test split (2,156 images) remains untouched.
-
----
+As section 8: historical validation only (`ecosort-baseline-2`). No held-out test score was ever recorded. The test split remains untouched until the model and thresholds are finalized.
 
 ## 10. Final test results
 
-None. The held-out test split has not been scored for any model. Cannot be produced without a trained checkpoint.
+None. The held-out test split has not been scored for any model.
 
 ---
 
@@ -150,13 +157,15 @@ Verification (executed):
 - `load_detector(settings)` → detector loaded = True, `image_size = 640`
 - `/health` would report `model_loaded = true`
 
-Regression checks (executed, `.venv`):
-- `python -m pytest backend/tests -q` → **52 passed, 6 skipped** (6 skips are model-dependent tests needing `ECOSORT_TEST_WEIGHTS`)
-- `python -m pytest ai-model/tests -q` → **109 passed**
+Regression checks after merge conflict resolution and Windows symlink fix (executed, `.venv`):
+- `python -m pytest backend/tests -q` → **59 passed, 6 skipped** (6 skips are model-dependent tests needing `ECOSORT_TEST_WEIGHTS`)
+- `python -m pytest ai-model/tests -q` → **117 passed** (includes `test_make_comparison_split.py` ×2)
 - `ruff check backend/ ai-model/` → All checks passed
 - `python -m pip check` → No broken requirements found
 
 Baseline (pre-change) was 52 passed + 6 skipped backend, 109 passed ai-model — unchanged. No regressions.
+
+Merge conflict resolution committed as `bc80f93` (merge origin/main) + `6144508` (Windows symlink fix). Both pushed to `origin/feature/production-readiness-roadmap`. PR #13 conflict status cannot be verified locally (no `gh` CLI available).
 
 The application now clearly reports model availability via `/health` and `/api/v1/model-info` (model_name, model_version, model_loaded, classes, thresholds, image_size).
 
@@ -166,7 +175,7 @@ The application now clearly reports model availability via `/health` and `/api/v
 
 | Phase | Work | Blocker | Required user action |
 |-------|------|---------|----------------------|
-| 2 / 4 | Dataset audit + rebuild (pin versions, confirm licenses, apply overrides, resplit, validate) | No Roboflow API key; `downloads/` and `datasets/` do not exist locally; `roboflow` package not installed | Provide Roboflow API key (Private API key) so the four pinned dataset versions can be downloaded and versions/licenses confirmed |
+| 2 / 4 | Dataset audit + rebuild (dry-run mapping, rebuild with `--resplit --max-share organic=0.3`, validate, audit duplicates/leakage) | Download in progress (garbage-cls-3 ~68%, trash-detection pending) | None — download running in background. Will proceed autonomously once complete. |
 | 5 | YOLO11n retraining (free GPU: Colab T4 or Kaggle T4) | No torch/ultralytics locally; no GPU locally; Colab/Kaggle are external user accounts | Confirm Kaggle or Colab GPU access is available and the user will run `ai-model/notebooks/train_ecosort_kaggle.ipynb` (or Colab equivalent) with `ROBOFLOW_API_KEY` secret |
 | 7 | ONNX export + PyTorch/ONNX parity | No trained `best.pt` locally | Follows successful retraining |
 | 8 | ONNX-backed deployment | Resolved (config fix above) | — |
@@ -187,12 +196,12 @@ Baseline verification (already run, passes):
 .venv\Scripts\python.exe -m pip check
 ```
 
-Dataset download + rebuild (blocked — needs Roboflow API key, `ROBOFLOW_API_KEY` env var):
+Dataset download + rebuild (in progress — key from root `.env`):
 ```
-# requires pip install roboflow pyyaml pillow (roboflow not installed locally)
-set ROBOFLOW_API_KEY=<private key>
-python scripts/download_datasets.py
-python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet downloads/neat-now downloads/garbage-cls-3 --resplit --max-share organic=0.3
+# from ai-model/ folder:
+python scripts/download_datasets.py          # running in background
+python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet downloads/neat-now downloads/garbage-cls-3 --resplit --max-share organic=0.3 --dry-run   # mapping check
+python scripts/prepare_dataset.py downloads/trash-detection downloads/trashnet downloads/neat-now downloads/garbage-cls-3 --resplit --max-share organic=0.3   # rebuild
 python scripts/validate_dataset.py datasets/ecosort
 ```
 
@@ -213,4 +222,4 @@ Backend (works now after config fix):
 
 ---
 
-**Next step (awaiting user action):** provide a Roboflow Private API key so the dataset can be downloaded, version-pinned, audited, and rebuilt; and confirm whether Kaggle T4 or Colab T4 GPU training can be run by the user so the YOLO11n model can be retrained, evaluated, exported to ONNX, and integrated.
+**Next step:** Wait for dataset download to complete (~6-10 min for garbage-cls-3 + trash-detection), then proceed autonomously with dry-run mapping check → dataset rebuild → validate_dataset.py → duplicate-conflict/leakage audit → dataset statistics report. Stop before GPU training if any dataset, licensing, annotation, or split issue needs user decision.
