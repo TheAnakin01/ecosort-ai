@@ -35,7 +35,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from check_hallucinations import IMAGE_SUFFIXES, match_image, read_labels
-from dataset_paths import dataset_dir
+from dataset_paths import data_root, dataset_dir  # noqa: E402
 
 AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 MIN_BOXES = 200  # fewer shown boxes than this and the numbers are noise
@@ -99,7 +99,7 @@ def recommend(rows: list[dict], max_on_nothing: float, sure_precision: float) ->
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument("--weights", type=Path, default=AI_MODEL_DIR / "weights" / "best.pt")
+    parser.add_argument("--weights", type=Path, default=data_root() / "weights" / "best.pt")
     parser.add_argument("--data", type=Path, default=AI_MODEL_DIR / "configs" / "data.yaml")
     parser.add_argument("--iou", type=float, default=0.7, help="the backend's IOU_THRESHOLD")
     parser.add_argument("--imgsz", type=int, default=640)

@@ -13,13 +13,13 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
-AI_MODEL_DIR = Path(__file__).resolve().parent.parent
+from dataset_paths import data_root  # noqa: E402
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Detect waste in one image")
     parser.add_argument("image", help="path to a photo")
-    parser.add_argument("--weights", default=str(AI_MODEL_DIR / "weights" / "best.pt"))
+    parser.add_argument("--weights", default=str(data_root() / "weights" / "best.pt"))
     parser.add_argument("--conf", type=float, default=0.35, help="minimum confidence to keep")
     args = parser.parse_args()
 

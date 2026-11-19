@@ -27,9 +27,9 @@ from pathlib import Path
 
 from PIL import Image
 
+from dataset_paths import data_root  # noqa: E402
 from prepare_dataset import IMAGE_SUFFIXES, MIN_BOX_SIDE, OUR_CLASSES, source_key, visual_hash
 
-AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 SPLITS = ["train", "val", "test"]
 # A box may stick out of the image by this much before it counts as an error.
 EDGE_TOLERANCE = 1e-3
@@ -194,7 +194,7 @@ def print_group(title: str, groups: dict[str, list[str]]) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Validate a prepared EcoSort dataset")
-    parser.add_argument("dataset", nargs="?", type=Path, default=AI_MODEL_DIR / "datasets" / "ecosort")
+    parser.add_argument("dataset", nargs="?", type=Path, default=data_root() / "datasets" / "ecosort")
     parser.add_argument("--report", type=Path, help="where to save the full report (default: inside the dataset)")
     args = parser.parse_args()
 

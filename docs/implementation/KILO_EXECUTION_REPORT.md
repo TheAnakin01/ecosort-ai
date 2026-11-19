@@ -71,6 +71,33 @@ No model artifacts deleted or overwritten. `best.onnx` backed up in place (still
 
 ---
 
+## 4.5 External data root (ECOSORT_DATA_ROOT) — D: storage migration
+
+C: drive had insufficient free space for the multi-GB dataset rebuild. All dataset artifacts were copied to `D:\EcoSortData` and a configurable `ECOSORT_DATA_ROOT` was introduced so scripts can use external storage while preserving Colab/Kaggle compatibility.
+
+**Verification (C: vs D:):**
+- `downloads/`: 128,432 files, 5.83 GB — identical on both drives ✓
+- `datasets/ecosort/`: 43,116 files (21,558 images + 21,558 labels), 2.09 GB — identical on both drives ✓
+- SHA-256 hashes match for all comparable files (data.yaml, manifest) ✓
+- Original C: copies preserved (no deletion or move)
+
+**How it works:**
+- `ECOSORT_DATA_ROOT` environment variable configures the external data root
+- On Windows, defaults to `D:\EcoSortData` when the variable is unset
+- On Linux (Colab, Kaggle), the variable is normally unset and scripts fall back to `ai-model/` relative paths
+- `dataset_dir()` only uses the external root when `ECOSORT_DATA_ROOT` is explicitly set (tests with temp directories are unaffected)
+
+**Downloads go to:** `{ECOSORT_DATA_ROOT}/downloads` (default `D:\EcoSortData\downloads`)
+**Datasets go to:** `{ECOSORT_DATA_ROOT}/datasets/ecosort` (default `D:\EcoSortData\datasets\ecosort`)
+**Training runs go to:** `{ECOSORT_DATA_ROOT}/runs` (default `D:\EcoSortData\runs`)
+**Checkpoints/weights go to:** `{ECOSORT_DATA_ROOT}/weights` (default `D:\EcoSortData\weights`)
+
+**Modified scripts:** `dataset_paths.py`, `download_datasets.py`, `prepare_dataset.py`, `validate_dataset.py`, `train.py`, `check_hallucinations.py`, `predict.py`, `tune_thresholds.py`, `evaluate.py`
+
+**.gitignore:** Already excludes `downloads/`, `datasets/`, `runs/`, `*.pt` — no changes needed. D: drive is outside the repo, so automatically excluded from Git.
+
+---
+
 ## 5. Dataset sources and versions (pinned 2026-11-18 via Roboflow API)
 
 Versions verified via Roboflow API on 2026-11-18 and pinned in `ai-model/configs/datasets.yaml`.
@@ -175,8 +202,8 @@ The application now clearly reports model availability via `/health` and `/api/v
 
 | Phase | Work | Blocker | Required user action |
 |-------|------|---------|----------------------|
-| 2 / 4 | Dataset audit + rebuild (dry-run mapping, rebuild with `--resplit --max-share organic=0.3`, validate, audit duplicates/leakage) | Download in progress (garbage-cls-3 ~68%, trash-detection pending) | None — download running in background. Will proceed autonomously once complete. |
-| 5 | YOLO11n retraining (free GPU: Colab T4 or Kaggle T4) | No torch/ultralytics locally; no GPU locally; Colab/Kaggle are external user accounts | Confirm Kaggle or Colab GPU access is available and the user will run `ai-model/notebooks/train_ecosort_kaggle.ipynb` (or Colab equivalent) with `ROBOFLOW_API_KEY` secret |
+| 2 / 4 | Dataset audit + rebuild | **COMPLETE** — dataset rebuilt on D:\EcoSortData\datasets\ecosort, validated with 0 errors, 0 warnings | None — ready for training |
+| 5 | YOLO11n retraining (free GPU: Colab T4 or Kaggle T4) | No torch/ultralytics locally; no GPU locally | User to run `ai-model/notebooks/train_ecosort_kaggle.ipynb` (or Colab equivalent) with `ROBOFLOW_API_KEY` Kaggle Secret |
 | 7 | ONNX export + PyTorch/ONNX parity | No trained `best.pt` locally | Follows successful retraining |
 | 8 | ONNX-backed deployment | Resolved (config fix above) | — |
 | 9 / 10 | Full regression + docs finalization | Depends on phases above | — |
@@ -222,4 +249,4 @@ Backend (works now after config fix):
 
 ---
 
-**Next step:** Wait for dataset download to complete (~6-10 min for garbage-cls-3 + trash-detection), then proceed autonomously with dry-run mapping check → dataset rebuild → validate_dataset.py → duplicate-conflict/leakage audit → dataset statistics report. Stop before GPU training if any dataset, licensing, annotation, or split issue needs user decision.
+**Dataset rebuild complete.** Dataset rebuilt on D:\EcoSortData\datasets\ecosort with 41,731 images (29,169 train / 8,274 val / 4,288 test), 0 validation errors, organic capped at 30% of boxes. **Next step:** GPU training on Colab T4 or Kaggle T4 using `ai-model/notebooks/train_ecosort_kaggle.ipynb` with `ROBOFLOW_API_KEY` secret. Stop before GPU training if any dataset, licensing, annotation, or split issue needs user decision.
