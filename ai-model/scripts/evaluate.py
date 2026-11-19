@@ -18,13 +18,13 @@ from pathlib import Path
 import ultralytics
 from ultralytics import YOLO
 
-from dataset_paths import absolute_data_yaml
+from dataset_paths import absolute_data_yaml, data_root  # noqa: E402
 from train import AI_MODEL_DIR, overall_metrics, per_class_rows, print_metrics
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Evaluate EcoSort detector weights")
-    parser.add_argument("--weights", type=Path, default=AI_MODEL_DIR / "weights" / "best.pt")
+    parser.add_argument("--weights", type=Path, default=data_root() / "weights" / "best.pt")
     parser.add_argument("--data", type=Path, default=AI_MODEL_DIR / "configs" / "data.yaml")
     parser.add_argument("--split", choices=["val", "test"], default="val")
     parser.add_argument("--imgsz", type=int, default=640)

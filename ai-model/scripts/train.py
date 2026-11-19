@@ -21,12 +21,10 @@ import torch
 import ultralytics
 from ultralytics import YOLO
 
-from dataset_paths import absolute_data_yaml, dataset_dir
+from dataset_paths import AI_MODEL_DIR, absolute_data_yaml, data_root, dataset_dir
 from overfit_check import check as check_overtraining
 from overfit_check import print_report as print_overtraining_report
 from overfit_check import read_results
-
-AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 
 
 def require_validated(dataset: Path) -> dict:
@@ -101,7 +99,7 @@ def main() -> None:
     )
     parser.add_argument("--seed", type=int, default=0, help="random seed, recorded so a run can be repeated")
     parser.add_argument("--name", default="ecosort-baseline", help="name of this training run")
-    parser.add_argument("--project", default=str(AI_MODEL_DIR / "runs"), help="folder to save runs in")
+    parser.add_argument("--project", default=str(data_root() / "runs"), help="folder to save runs in")
     parser.add_argument(
         "--skip-validation-check",
         action="store_true",

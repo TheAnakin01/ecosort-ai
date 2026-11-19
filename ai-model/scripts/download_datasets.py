@@ -29,6 +29,8 @@ AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 CONFIG_PATH = AI_MODEL_DIR / "configs" / "datasets.yaml"
 MANIFEST_NAME = "download_manifest.json"
 
+from dataset_paths import data_root  # noqa: E402
+
 # Fallback list used when configs/datasets.yaml does not exist. Kept in step
 # with notebooks/train_ecosort.ipynb and configs/datasets.yaml.
 FALLBACK_DATASETS = [
@@ -103,7 +105,7 @@ def find_version(versions, requested: int | None):
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Download the EcoSort training datasets from Roboflow")
-    parser.add_argument("--out", type=Path, default=AI_MODEL_DIR / "downloads")
+    parser.add_argument("--out", type=Path, default=data_root() / "downloads")
     args = parser.parse_args()
 
     config = load_dataset_config()
