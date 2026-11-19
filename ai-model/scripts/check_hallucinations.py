@@ -33,9 +33,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-from dataset_paths import dataset_dir
+from dataset_paths import AI_MODEL_DIR, data_root, dataset_dir  # noqa: E402
 
-AI_MODEL_DIR = Path(__file__).resolve().parent.parent
 CLASSES = ["paper", "plastic", "metal", "organic"]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 OUTCOMES = ["correct", "wrong class", "duplicate", "poor box", "on nothing"]
@@ -203,7 +202,7 @@ def draw_examples(per_image: list[dict], out_dir: Path, count: int) -> list[str]
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Count false detections the way the app would see them")
-    parser.add_argument("--weights", type=Path, default=AI_MODEL_DIR / "weights" / "best.pt")
+    parser.add_argument("--weights", type=Path, default=data_root() / "weights" / "best.pt")
     parser.add_argument("--data", type=Path, default=AI_MODEL_DIR / "configs" / "data.yaml")
     parser.add_argument("--split", choices=["val", "test"], default="val")
     parser.add_argument("--conf", type=float, default=0.35, help="the backend's CONFIDENCE_THRESHOLD")

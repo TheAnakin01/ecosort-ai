@@ -42,7 +42,8 @@ from pathlib import Path
 import yaml
 from PIL import Image
 
-AI_MODEL_DIR = Path(__file__).resolve().parent.parent
+from dataset_paths import AI_MODEL_DIR, data_root  # noqa: E402
+
 OUR_CLASSES = ["paper", "plastic", "metal", "organic"]
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 SPLIT_FOLDERS = {"train": "train", "valid": "val", "val": "val", "test": "test"}
@@ -453,7 +454,7 @@ def print_report(stats: dict) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Merge Roboflow YOLO exports into the EcoSort dataset")
     parser.add_argument("sources", nargs="+", type=Path, help="downloaded dataset folders")
-    parser.add_argument("--out", type=Path, default=AI_MODEL_DIR / "datasets" / "ecosort")
+    parser.add_argument("--out", type=Path, default=data_root() / "datasets" / "ecosort")
     parser.add_argument("--overrides", type=Path, default=AI_MODEL_DIR / "configs" / "class_overrides.yaml")
     parser.add_argument("--dry-run", action="store_true", help="show the mapping and counts, copy nothing")
     parser.add_argument(
