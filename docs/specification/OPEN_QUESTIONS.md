@@ -1,6 +1,6 @@
 # Open Questions and Decisions Requiring Confirmation
 
-The agent should not block core development on every question. Use the proposed defaults below, record assumptions and ask the product owner when a decision materially affects implementation.
+Core development should not be blocked on every question. Use the proposed defaults below, record assumptions and ask the product owner when a decision materially affects implementation.
 
 | Topic | Proposed default | When confirmation is required |
 |---|---|---|

@@ -74,4 +74,3 @@ A release APK blocks plain `http://` addresses, which is why the backend must be
 - History uses on-device storage, not Supabase as the blueprint planned.
 - The home screen shows whether the backend is reachable. Tap that line to check again.
 - The app icon and splash screen are still the Expo defaults in `assets/images/`.
-- `AGENTS.md` came with the Expo template. It gives AI coding tools the rules for this Expo version.

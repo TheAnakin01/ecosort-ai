@@ -1,6 +1,6 @@
 # EcoSort AI backend, ONNX runtime (no PyTorch). Build from the repo root:
 #   docker build -f backend/Dockerfile -t ecosort-backend .
-# Needs ai-model/weights/best.onnx in the build context (see docs/AI-HANDOFF.md).
+# Needs ai-model/weights/best.onnx in the build context (see docs/PROJECT_STATUS.md).
 FROM python:3.13-slim
 
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1

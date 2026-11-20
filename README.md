@@ -1,46 +1,65 @@
 # EcoSort AI
 
-An app that finds several waste items in one photo, labels each one as paper, plastic, metal or organic, and tells you which bin it goes in. Built for Srujan 2026.
+EcoSort AI finds several waste items in one photo, labels each one as **paper, plastic, metal or organic**, draws a box around it and tells you which bin it goes in. Built for Srujan 2026.
 
-The approved specification is the documentation pack in [docs/EcoSort-AI-Agent-Harness/](docs/EcoSort-AI-Agent-Harness/README.md). The earlier blueprint is [Smart waste ai.md](Smart%20waste%20ai.md).
+## Try it
 
-Working on this repo with Claude: [CLAUDE.md](CLAUDE.md) holds the project instructions, and `.claude/skills/` holds ten task-specific skills that Claude loads automatically.
+- **Android app:** download the APK from the [`apk-latest` release](https://github.com/TheAnakin01/ecosort-ai/releases/tag/apk-latest) and install it (allow installs from your browser when asked).
+- **In a browser:** https://theanakin01.github.io/ecosort-ai/ (works on a phone too).
+- The server runs on a free plan and sleeps when idle, so the **first scan can take up to a minute**. Opening https://ecosort-ai-srujan26.onrender.com/health first wakes it up.
 
-## Open it
+## What it does
 
-- **App in a browser:** https://theanakin01.github.io/ecosort-ai/ (works on a phone; scanning stays off until a backend is hosted and its address is set, see [mobile/README.md](mobile/README.md))
-- **Train the model:** [open the notebook in Colab](https://colab.research.google.com/github/TheAnakin01/ecosort-ai/blob/main/ai-model/notebooks/train_ecosort.ipynb)
+- Take a photo or pick one from the gallery.
+- Every item found gets a box, a category and a confidence score; uncertain detections are marked.
+- Counts per category and general sorting tips (dry and wet waste).
+- History of past scans, kept only on the phone.
+- No accounts, and the server does not store photos.
 
-## Status
+## How it works
 
-| Part | State |
+```
+Phone app  ──photo──▶  FastAPI backend  ──▶  YOLO11n detector (ONNX Runtime)
+   ▲                                              │
+   └──── items, boxes, confidence, counts, tips ◀─┘
+```
+
+| Part | Technology |
 |---|---|
-| Backend API (`backend/`) | Matches the API specification. Runs the real model as PyTorch or ONNX (ONNX fits a 512 MB host). Not yet hosted. |
-| Dataset and model (`ai-model/`) | Run 2 (Kaggle, four datasets, mapping fixed) beats run 1 on 7,501 shared validation photos (mAP@50-95 0.550 vs 0.386) and is the model in `ai-model/weights/`. Not yet tested on own phone photos. See [docs/training-log.md](docs/training-log.md). |
-| Mobile app (`mobile/`) | All five screens work in the web version, including real inference through the backend with the synthetic-shapes model. Not yet run as an app on an Android phone. |
+| Detector | Ultralytics YOLO11n (nano), fine-tuned by transfer learning on four public waste datasets, exported to ONNX |
+| Backend | Python, FastAPI, ONNX Runtime; Docker, hosted on Render |
+| App | React Native, Expo, TypeScript; Android APK and web build |
+| Automation | GitHub Actions: tests, web deploy, APK build |
 
-## How the parts fit
+## Results
 
-1. The phone app sends a photo to the backend.
-2. The backend runs the trained YOLO model on it.
-3. The backend replies with every item found: category, confidence and box position, plus counts per category.
-4. The app draws the boxes and shows the sorting tips.
+Measured on 7,501 validation photos the model did not train on (details in [docs/training-log.md](docs/training-log.md)):
 
-## Folders
+| Precision | Recall | mAP@50 | mAP@50-95 |
+|---|---|---|---|
+| 0.776 | 0.622 | 0.711 | 0.550 |
+
+About 4 in 5 boxes are correct, and it finds about 3 in 5 items. Limitations, such as no glass class and items missed in crowded piles, are listed in [docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md).
+
+## Repository
 
 ```
-ai-model/   dataset merge, training and prediction scripts, Colab notebook
-backend/    FastAPI server that serves the model
-mobile/     React Native + Expo phone app
-docs/       training log
+ai-model/   dataset preparation, training, evaluation and export scripts; notebooks; the trained model
+backend/    FastAPI server that runs the model
+mobile/     React Native + Expo app
+docs/       specification, project status, decisions, training log, dataset card
 ```
 
-## Start here
+## Run it yourself
 
-1. **Dataset and model:** follow [ai-model/README.md](ai-model/README.md).
-2. **Backend:** follow [backend/README.md](backend/README.md).
-3. **Mobile app:** follow [mobile/README.md](mobile/README.md).
+1. **Dataset and model:** [ai-model/README.md](ai-model/README.md) (training runs on Colab or Kaggle).
+2. **Backend:** [backend/README.md](backend/README.md).
+3. **App:** [mobile/README.md](mobile/README.md).
 
-Datasets and model weights are not stored in this repo. They are too large for GitHub.
+The trained model (`ai-model/weights/best.onnx`) is included; datasets are downloaded by the scripts.
 
-Approved project decisions are recorded in [docs/decision-log.md](docs/decision-log.md).
+## Documentation
+
+- [Project status](docs/PROJECT_STATUS.md): what is done and what is open
+- [Specification](docs/specification/README.md): requirements, architecture, API, UI
+- [Decision log](docs/decision-log.md) and [dataset card](docs/dataset-card.md)
