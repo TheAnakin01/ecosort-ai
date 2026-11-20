@@ -1,5 +1,6 @@
 import { Platform } from 'react-native';
 
+import { uploadPart } from './upload-part';
 import type { Category, DetectResponse, Guidance, Photo } from './types';
 
 // Set EXPO_PUBLIC_API_URL in mobile/.env. On a real phone "localhost" means
@@ -25,10 +26,13 @@ const TIMEOUT_MS = 30_000;
 export class ApiError extends Error {
   /** The backend's error code, such as "UPLOAD_TOO_LARGE", when it sent one. */
   code?: string;
+  /** Set when no answer came back at all, so the caller may wake the server and retry. */
+  kind?: 'network' | 'timeout';
 
-  constructor(message: string, code?: string) {
+  constructor(message: string, code?: string, kind?: 'network' | 'timeout') {
     super(message);
     this.code = code;
+    this.kind = kind;
   }
 }
 
@@ -41,11 +45,15 @@ async function request(path: string, init?: RequestInit, timeoutMs = TIMEOUT_MS)
   let response: Response;
   try {
     response = await fetch(`${API_URL}${path}`, { ...init, signal: controller.signal });
-  } catch {
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new ApiError('The server took too long to answer. Try again.', undefined, 'timeout');
+    }
+    const detail = error instanceof Error && error.message ? ` (${error.message})` : '';
     throw new ApiError(
-      controller.signal.aborted
-        ? 'The server took too long to answer. Try again.'
-        : `Could not reach the server at ${API_URL}. Check that the backend is running and that this device is on the same Wi-Fi.`,
+      `Could not reach the server at ${API_URL}. Check your internet connection and try again.${detail}`,
+      undefined,
+      'network',
     );
   } finally {
     clearTimeout(timer);
@@ -65,22 +73,26 @@ async function request(path: string, init?: RequestInit, timeoutMs = TIMEOUT_MS)
 
 async function buildUpload(photo: Photo): Promise<FormData> {
   const form = new FormData();
-  if (Platform.OS === 'web') {
-    const file = photo.file ?? (await (await fetch(photo.uri)).blob());
-    form.append('file', file, photo.fileName ?? 'photo.jpg');
-  } else {
-    // React Native uploads a local file when given its uri, name and type.
-    form.append('file', {
-      uri: photo.uri,
-      name: photo.fileName ?? 'photo.jpg',
-      type: photo.mimeType ?? 'image/jpeg',
-    } as unknown as Blob);
-  }
+  form.append('file', await uploadPart(photo), photo.fileName ?? 'photo.jpg');
   return form;
 }
 
+/** The free server sleeps when idle and can take about a minute to wake. */
+const WAKE_TIMEOUT_MS = 90_000;
+
 export async function detectWaste(photo: Photo): Promise<DetectResponse> {
-  const response = await request('/api/v1/detect', { method: 'POST', body: await buildUpload(photo) });
+  const send = async () =>
+    request('/api/v1/detect', { method: 'POST', body: await buildUpload(photo) });
+  let response: Response;
+  try {
+    response = await send();
+  } catch (error) {
+    // No answer at all usually means the server was asleep. Wake it with a
+    // light request that may wait up to WAKE_TIMEOUT_MS, then try once more.
+    if (!(error instanceof ApiError) || !error.kind) throw error;
+    await request('/health', undefined, WAKE_TIMEOUT_MS);
+    response = await send();
+  }
   return response.json();
 }
 
