@@ -15,13 +15,14 @@ EcoSort AI detects several waste items in one photo and labels each as paper, pl
 ### Added 2026-11-18 (branch `feature/finish-mvp`)
 - Backend rate limit on `/api/v1/detect`: 60 scans per minute per client IP (`RATE_LIMIT_PER_MINUTE`, 0 = off), 429 `RATE_LIMITED` with `Retry-After`. Behind Render, `TRUST_PROXY_HEADERS=true` uses the last `X-Forwarded-For` entry. Not verified on Render whether that entry is the visitor or a shared proxy; if many users get 429 together, set `RATE_LIMIT_PER_MINUTE=0` in the Render dashboard.
 - `mobile/eas.json`: `preview` builds an APK, `production` an AAB, both pointing at `https://ecosort-ai-srujan26.onrender.com`. Steps in `mobile/README.md`.
+- `.github/workflows/build-apk.yml`: builds a debug-signed arm64 APK on GitHub Actions (no Expo account) and publishes it as the `apk-latest` release. First build succeeded 2026-11-18; not yet installed on a phone.
 - `ai-model/scripts/tune_thresholds.py`: sweeps confidence on the validation split and recommends both thresholds.
 - `docs/KNOWN_LIMITATIONS.md`: release notes, limitations, privacy, demo script.
 - `docs/implementation/EXECUTION_TRACKER.md` corrected (it predated run 2 and the deployment).
 
 ### Not done (in priority order)
-1. Confirm one real scan on the hosted web app (backend is live; `API_URL` set 2026-11-17).
-2. Build the APK (`mobile/README.md`), install it, scan on a phone. Check the Render address in `eas.json` matches yours.
+1. Done 2026-11-18: scans work end to end from the APK on an Android phone against Render (after fixing the photo upload for Expo's fetch). The user reports many items are missed; detection quality is now the main gap.
+2. Confirm a scan on the hosted web app as well.
 3. Kaggle: run `tune_thresholds.py` on the validation split, set the two thresholds in `render.yaml`, then score the test split once with `evaluate.py --split test`. Record both in `docs/training-log.md`.
 4. Test on 20-30 own phone photos; optional run 3 with own annotated photos.
 5. Confirm three dataset licences; add a LICENSE file (team decision; Ultralytics is AGPL-3.0).

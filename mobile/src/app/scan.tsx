@@ -86,7 +86,7 @@ export default function ScanScreen() {
 
       {scanning ? (
         <Text style={styles.scanningText} accessibilityLiveRegion="polite">
-          Analyzing your photo…
+          Analyzing your photo… The first scan after a break can take up to a minute while the server wakes up.
         </Text>
       ) : null}
 
