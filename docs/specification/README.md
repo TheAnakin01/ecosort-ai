@@ -1,22 +1,20 @@
-# EcoSort AI — Agent Handoff Pack
+# EcoSort AI — Product and Engineering Specification
 
 This folder is the product and engineering source of truth for building **EcoSort AI**, a mobile application that detects multiple waste objects in one image and helps users sort them into material categories.
 
-## How an AI coding agent should use this pack
+## How to use this specification
 
-1. Read `AGENT_INSTRUCTIONS.md` first.
-2. Read `PRODUCT_REQUIREMENTS.md`, `MVP_SCOPE.md`, and `ARCHITECTURE.md`.
-3. Read the relevant specialist documents before implementing a phase.
-4. Follow the phase order in `ROADMAP.md`. Do not skip gates.
-5. Treat decisions marked **Proposed** as defaults that require validation, not as already implemented facts.
-6. Never invent model accuracy, dataset provenance, local recycling rules, deployment status, or completed features.
-7. Keep this documentation updated when an approved product or architecture decision changes.
+1. Start with `PRODUCT_REQUIREMENTS.md`, `MVP_SCOPE.md` and `ARCHITECTURE.md`.
+2. Read the relevant specialist document before implementing a phase.
+3. Follow the phase order in `ROADMAP.md`.
+4. Treat decisions marked **Proposed** as defaults that require validation, not as implemented facts.
+5. Never claim model accuracy, dataset provenance, local recycling rules or deployment status without evidence.
+6. Keep this documentation updated when an approved decision changes; record it in `../decision-log.md`.
 
 ## Document index
 
 | File | Purpose |
 |---|---|
-| `AGENT_INSTRUCTIONS.md` | Operating rules, workflow, coding standards, handoff requirements |
 | `PRODUCT_REQUIREMENTS.md` | Product vision, users, problems, functional and non-functional requirements |
 | `MVP_SCOPE.md` | Exact MVP boundaries, priorities, acceptance criteria, exclusions |
 | `ARCHITECTURE.md` | System architecture, components, data flow, deployment boundaries |
@@ -44,4 +42,4 @@ This folder is the product and engineering source of truth for building **EcoSor
 
 ## Important status note
 
-This pack is a **build specification**, not evidence that the app, model, API, database, or deployment already exists. The agent must inspect the repository and report its actual state before changing files.
+This is a **build specification**, not evidence that a feature exists. For the current state of the project see `../PROJECT_STATUS.md`.

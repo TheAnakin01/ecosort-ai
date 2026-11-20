@@ -1,13 +1,13 @@
 # Decision log
 
-Approved project decisions, newest last. These rank above the documentation pack and the existing code when they conflict (see `CLAUDE.md`).
+Approved project decisions, newest last. These rank above the specification and the existing code when they conflict.
 
 ## 2026-11-14 — Detector stays YOLO nano
 
 - **Decision:** Keep the pretrained Ultralytics YOLO nano detector. Any other model family needs explicit approval before code changes.
 - **Reason:** The documentation pack, the repo, the notebook and the first training attempt all use it. Round 1 is about a week away.
 - **Alternatives considered:** SSD/SSDLite with a MobileNet backbone. Discussed, not approved.
-- **Affected:** `CLAUDE.md`, `.claude/skills/yolo-waste-detection/`.
+- **Affected:** `ai-model/` training pipeline and model documentation.
 - **Migration needed:** No.
 
 ## 2026-11-14 — Keep on-device scan history
@@ -48,9 +48,9 @@ Approved project decisions, newest last. These rank above the documentation pack
 
 - **Decision:** The backend can load either `best.pt` (PyTorch/Ultralytics) or `best.onnx` (onnxruntime), chosen by the `MODEL_PATH` file extension. Deployment uses ONNX. The detector is still the same trained YOLO nano model; only the inference engine changes.
 - **Reason:** Free 512 MB hosts cannot hold PyTorch (about 760 MB). The ONNX runtime path idles at about 176 MB.
-- **Evidence (measured 2026-11-15, 2 vCPU sandbox, CPU):** raw model output differs from PyTorch by at most 0.004. Detections on the two Ultralytics sample images match PyTorch exactly (same classes, confidence within 0.01, boxes within 2 px; these are not waste photos). Peak RSS 360 MB for a 12 MP photo and 479 MB for a 24 MP photo, with no failures in a 512 MB cgroup. Warm latency 75-90 ms for a 0.9 MP photo, 230-290 ms for 12-24 MP.
+- **Evidence (measured 2026-11-15, 2 vCPU Linux test machine, CPU):** raw model output differs from PyTorch by at most 0.004. Detections on the two Ultralytics sample images match PyTorch exactly (same classes, confidence within 0.01, boxes within 2 px; these are not waste photos). Peak RSS 360 MB for a 12 MP photo and 479 MB for a 24 MP photo, with no failures in a 512 MB cgroup. Warm latency 75-90 ms for a 0.9 MP photo, 230-290 ms for 12-24 MP.
 - **Alternatives considered:** Keep PyTorch and pay for a larger host; laptop with a tunnel (kept as a demo fallback).
-- **Not verified:** Parity on real waste photos (none available yet). Behaviour on a 0.1 vCPU free instance, where inference will be much slower. The Docker image build, because Docker Hub was unreachable from the sandbox; the Dockerfile is written but untested.
+- **Not verified:** Parity on real waste photos (none available yet). Behaviour on a 0.1 vCPU free instance, where inference will be much slower. The Docker image build (later built successfully on Render, 2026-11-18).
 - **Affected:** `backend/app/onnx_detector.py`, `backend/app/detector.py`, `backend/app/main.py` (fewer image copies), `backend/Dockerfile`, `backend/requirements-onnx.txt`, `ai-model/scripts/export_onnx.py`.
 - **Migration needed:** No. The API contract is unchanged and PyTorch remains the default for `.pt` files.
 
