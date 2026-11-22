@@ -4,6 +4,7 @@ Run from the ai-model/ folder (Colab or a laptop with a GPU), after
 prepare_dataset.py and validate_dataset.py:
 
     python scripts/train.py --epochs 50
+    python scripts/train.py --resume --epochs 60   # resume from last.pt
 
 The best checkpoint is saved to <run folder>/weights/best.pt, chosen on the
 validation split. Copy it to ai-model/weights/best.pt so the backend can load it.
@@ -13,6 +14,7 @@ with scripts/evaluate.py --split test, after all tuning is done.
 """
 
 import argparse
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -42,6 +44,15 @@ def require_validated(dataset: Path) -> dict:
             "or pass --skip-validation-check to train anyway."
         )
     return report
+
+
+def compute_sha256(path: Path) -> str:
+    """Compute SHA-256 hash of a file for provenance tracking."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(8192), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 
 def per_class_rows(metrics) -> list[dict]:
@@ -87,10 +98,15 @@ def overall_metrics(metrics) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train the EcoSort detector")
     parser.add_argument("--model", default="yolo11n.pt", help="pretrained YOLO nano weights to start from")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="resume training from last.pt using Ultralytics resume=True",
+    )
     parser.add_argument("--data", type=Path, default=AI_MODEL_DIR / "configs" / "data.yaml")
-    parser.add_argument("--epochs", type=int, default=50)
+    parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--imgsz", type=int, default=640)
-    parser.add_argument("--batch", type=int, default=16)
+    parser.add_argument("--batch", type=int, default=8)
     parser.add_argument(
         "--patience",
         type=int,
@@ -105,25 +121,76 @@ def main() -> None:
         action="store_true",
         help="train even if validate_dataset.py has not passed on the dataset",
     )
+    parser.add_argument(
+        "--device",
+        type=int,
+        default=0,
+        help="CUDA device index (0 for single GPU). Only one GPU is used.",
+    )
     args = parser.parse_args()
+
+    # Verify CUDA is available before training
+    if not torch.cuda.is_available():
+        raise SystemExit("CUDA is not available. Training requires a GPU.")
+
+    device_name = torch.cuda.get_device_name(args.device)
+    print("CUDA available: True")
+    print(f"GPU device {args.device}: {device_name}")
+    print(f"GPU memory: {torch.cuda.get_device_properties(args.device).total_memory / 1e9:.1f} GB")
 
     dataset = dataset_dir(args.data)
     data = str(absolute_data_yaml(args.data))
     validation = None if args.skip_validation_check else require_validated(dataset)
 
-    # Transfer learning: start from weights that already know general shapes
-    # and edges, then teach them our four waste classes.
-    model = YOLO(args.model)
-    model.train(
-        data=data,
-        epochs=args.epochs,
-        imgsz=args.imgsz,
-        batch=args.batch,
-        seed=args.seed,
-        name=args.name,
-        project=args.project,
-        patience=args.patience,  # stop early once validation stops improving
-    )
+    # Determine starting checkpoint based on execution mode
+    if args.resume:
+        resume_ckpt = Path(args.model)
+        if not resume_ckpt.exists():
+            raise SystemExit(
+                f"Resume mode requested but checkpoint not found: {resume_ckpt}\n"
+                f"Run an initial training first, or provide a valid checkpoint path with --model."
+            )
+        print("\n=== RESUME RUN: Continuing from last checkpoint ===")
+        print(f"Resume checkpoint: {resume_ckpt}")
+        print(f"Checkpoint SHA-256: {compute_sha256(resume_ckpt)}")
+        # Ultralytics resume=True restores optimizer state, epoch progress,
+        # and original training arguments from the checkpoint.
+        model = YOLO(str(resume_ckpt))
+        model.train(
+            resume=True,
+            data=data,
+            epochs=args.epochs,
+            imgsz=args.imgsz,
+            batch=args.batch,
+            seed=args.seed,
+            name=args.name,
+            project=args.project,
+            patience=args.patience,
+            device=args.device,
+        )
+    else:
+        # Initial run: start from the provided checkpoint (e.g., original best.pt)
+        start_ckpt = Path(args.model)
+        if not start_ckpt.exists():
+            raise SystemExit(
+                f"Starting checkpoint not found: {start_ckpt}\n"
+                f"Provide a valid checkpoint path with --model."
+            )
+        print("\n=== INITIAL RUN: Starting from original checkpoint ===")
+        print(f"Source checkpoint: {start_ckpt}")
+        print(f"Checkpoint SHA-256: {compute_sha256(start_ckpt)}")
+        model = YOLO(str(start_ckpt))
+        model.train(
+            data=data,
+            epochs=args.epochs,
+            imgsz=args.imgsz,
+            batch=args.batch,
+            seed=args.seed,
+            name=args.name,
+            project=args.project,
+            patience=args.patience,  # stop early once validation stops improving
+            device=args.device,
+        )
     run_dir = Path(model.trainer.save_dir)
 
     # Score the best checkpoint on the validation split.
@@ -141,14 +208,16 @@ def main() -> None:
         # The folder name, which gets a number added when the name is already taken.
         "run_name": run_dir.name,
         "starting_weights": args.model,
+        "execution_mode": "resume" if args.resume else "initial",
         "epochs_requested": args.epochs,
         "patience": args.patience,
         "image_size": args.imgsz,
         "batch_size": args.batch,
         "seed": args.seed,
+        "device": args.device,
         "ultralytics_version": ultralytics.__version__,
         "torch_version": torch.__version__,
-        "device": "cuda" if torch.cuda.is_available() else "cpu",
+        "cuda_device": device_name,
         "dataset": str(dataset),
         "dataset_built": json.loads(build_record.read_text()).get("created") if build_record.exists() else None,
         "dataset_validated": validation is not None,
