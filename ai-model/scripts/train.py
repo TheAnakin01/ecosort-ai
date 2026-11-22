@@ -98,7 +98,11 @@ def overall_metrics(metrics) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train the EcoSort detector")
     parser.add_argument("--model", default="yolo11n.pt", help="pretrained YOLO nano weights to start from")
-    parser.add_argument("--resume", action="store_true", help="resume training from last.pt using Ultralytics resume=True")
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="resume training from last.pt using Ultralytics resume=True",
+    )
     parser.add_argument("--data", type=Path, default=AI_MODEL_DIR / "configs" / "data.yaml")
     parser.add_argument("--epochs", type=int, default=60)
     parser.add_argument("--imgsz", type=int, default=640)
@@ -130,7 +134,7 @@ def main() -> None:
         raise SystemExit("CUDA is not available. Training requires a GPU.")
 
     device_name = torch.cuda.get_device_name(args.device)
-    print(f"CUDA available: True")
+    print("CUDA available: True")
     print(f"GPU device {args.device}: {device_name}")
     print(f"GPU memory: {torch.cuda.get_device_properties(args.device).total_memory / 1e9:.1f} GB")
 
@@ -146,7 +150,7 @@ def main() -> None:
                 f"Resume mode requested but checkpoint not found: {resume_ckpt}\n"
                 f"Run an initial training first, or provide a valid checkpoint path with --model."
             )
-        print(f"\n=== RESUME RUN: Continuing from last checkpoint ===")
+        print("\n=== RESUME RUN: Continuing from last checkpoint ===")
         print(f"Resume checkpoint: {resume_ckpt}")
         print(f"Checkpoint SHA-256: {compute_sha256(resume_ckpt)}")
         # Ultralytics resume=True restores optimizer state, epoch progress,
@@ -172,7 +176,7 @@ def main() -> None:
                 f"Starting checkpoint not found: {start_ckpt}\n"
                 f"Provide a valid checkpoint path with --model."
             )
-        print(f"\n=== INITIAL RUN: Starting from original checkpoint ===")
+        print("\n=== INITIAL RUN: Starting from original checkpoint ===")
         print(f"Source checkpoint: {start_ckpt}")
         print(f"Checkpoint SHA-256: {compute_sha256(start_ckpt)}")
         model = YOLO(str(start_ckpt))
