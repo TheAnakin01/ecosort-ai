@@ -41,6 +41,4 @@ services:
         value: "60"
       - key: TRUST_PROXY_HEADERS
         value: "true"
-
-# Health check
-healthcheckPath: /health
+    healthCheckPath: /health
