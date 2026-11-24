@@ -1,21 +1,46 @@
-# Render Blueprint: deploys the backend from backend/Dockerfile.
-# Free instances have 512 MB RAM and sleep after about 15 minutes idle.
+# EcoSort AI - Render Deployment Configuration
+# File: render.yaml (place at repository root)
+# Deploy this file to Render to auto-configure the backend service.
+
 services:
   - type: web
-    name: ecosort-ai-srujan26
-    runtime: docker
-    plan: free
-    dockerfilePath: ./backend/Dockerfile
-    dockerContext: .
-    healthCheckPath: /health
+    name: ecosort-ai-backend
+    env: python
+    buildCommand: "pip install -r backend/requirements.txt"
+    startCommand: "uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
-      # Keeps peak memory under the free instance's 512 MB (measured 360 MB at 12 MP).
+      - key: MODEL_PATH
+        value: ai-model/weights/best.onnx
+      - key: MODEL_NAME
+        value: yolo-nano-waste-detector
+      - key: MODEL_VERSION
+        value: baseline
+      - key: CONFIDENCE_THRESHOLD
+        value: "0.35"
+      - key: LOW_CONFIDENCE_THRESHOLD
+        value: "0.5"
+      - key: IOU_THRESHOLD
+        value: "0.7"
+      - key: IMAGE_SIZE
+        value: auto
+      - key: MAX_DETECTIONS
+        value: "100"
+      - key: DEVICE
+        value: cpu
+      - key: INFERENCE_TIMEOUT_SECONDS
+        value: "30"
+      - key: MAX_UPLOAD_MB
+        value: "10"
+      - key: MAX_IMAGE_SIDE
+        value: "6000"
       - key: MAX_IMAGE_MEGAPIXELS
-        value: "12"
-      # Render's proxy sets X-Forwarded-For; needed for per-client rate limits.
-      - key: TRUST_PROXY_HEADERS
-        value: "true"
+        value: "24"
+      - key: CORS_ORIGINS
+        value: ""
       - key: RATE_LIMIT_PER_MINUTE
         value: "60"
-      - key: MODEL_VERSION
-        value: run2
+      - key: TRUST_PROXY_HEADERS
+        value: "true"
+
+# Health check
+healthcheckPath: /health
